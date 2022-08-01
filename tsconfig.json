@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "outDir": "dist",
+        "noEmitOnError": true,
+        "strict": true,
+        "target": "ES2022",
+        "moduleResolution": "node",
+        "module": "commonjs",
+    },
+
+    "files": [
+        "src/demineur.ts",
+        "src/inpage.ts",
+        "src/serveur.ts",
+    ],
+
+}

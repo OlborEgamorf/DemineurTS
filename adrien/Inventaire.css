@@ -1,0 +1,27 @@
+
+
+#menu {
+    color:rgb(129, 119, 100);
+    background-color: rgb(78, 60, 27);
+    background-size: 300%;
+    position: fixed;
+    width: 100%;
+    padding-left: 1em;
+    display: grid;
+    grid-template-columns: repeat(2, 120px);
+  }
+
+.menuTexte {
+    font-size: 35px;
+}
+
+#jeu:hover {
+    cursor: pointer;
+}
+
+#all {
+    background-image: url(PlageInventaire.png);
+}
+
+
+
