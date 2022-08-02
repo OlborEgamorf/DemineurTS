@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "dist",
+        "outDir": "static",
         "noEmitOnError": true,
         "strict": true,
         "target": "ES2022",
@@ -9,9 +9,7 @@
     },
 
     "files": [
-        "src/demineur.ts",
-        "src/inpage.ts",
-        "src/serveur.ts",
+        "src/func/inpage.ts",
     ],
 
 }

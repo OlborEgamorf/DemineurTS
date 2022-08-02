@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsx src/server/server.ts",
+    "start:watch": "nodemon src/server/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "gen:key": "tsx src/commands/genkey.ts"
   },
   "keywords": [],
   "author": "",
@@ -12,14 +16,24 @@
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/jquery": "^3.5.14",
+    "@types/node": "^18.6.3",
+    "@types/uuid": "^8.3.4",
+    "@types/ws": "^8.5.3",
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@fastify/static": "^6.5.0",
     "ejs": "^3.1.8",
     "express": "^4.18.1",
     "express-session": "^1.17.3",
-    "express-ws": "^5.0.2",
-    "query-string": "^7.1.1",
+    "fastify": "^4.3.0",
+    "nodemon": "^2.0.19",
+    "tsx": "^3.8.0",
+    "uuid": "^8.3.2",
     "ws": "^8.8.1"
+  },
+  "nodemonConfig": {
+    "exec": "tsx",
+    "ext": "js,ts,tsx"
   }
 }

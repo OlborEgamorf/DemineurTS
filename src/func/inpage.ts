@@ -6,12 +6,13 @@ function createBlank():boolean {
     if (long == NaN || larg == NaN || bombs == NaN || long<5 || larg<5 || bombs<5 || long>100 || larg>100 || bombs>3000 || long*larg<bombs) {
         return false
     } else {
-        $("#inputs").remove()
-        $("#confirm").remove()
-        $("#container-board").before(`
-            <div class="text">
-                <img src='flag.png' class='flag count'> <span id="counting" data-count="0" data-total="${bombs}">0/${bombs}</span>
-            </div>`)
+        $("#inputs").css("display","none")
+        $("#confirm").css("display","none")
+        $("#container-count").css("display","flex")
+        $("#container-reload").css("display","flex")
+        $("#counting").empty()
+        $("#counting").append(`0/${bombs}`)
+        $("#counting").attr("data-total",String(bombs))
         for (var i=0;i<long;i++) {
             var tr = $("<tr></tr>")
             for (var j=0;j<larg;j++) {
@@ -83,7 +84,8 @@ function callClear(caseG:HTMLElement,x:number,y:number):void {
                     td.setAttribute("oncontextmenu","")
                 }
                 $("#allover").width("100%")
-                $(".overlay-content").append("<span>Vous avez perdu !</span><a>Rejouer</a><a>Retour à l'accueil</a>")
+                $(".overlay-content").empty()
+                $(".overlay-content").append("<span>Vous avez perdu !</span><a onclick='reload()'>Rejouer</a><a>Retour à l'accueil</a>")
             }
         }    
     }
@@ -122,7 +124,8 @@ function callFlag(caseG:HTMLElement,x:number,y:number):boolean {
 
             if (isdone == true) {
                 $("#allover").width("100%")
-                $(".overlay-content").append("<span>Grille nettoyée ! Bravo !</span><a>Rejouer</a><a>Retour à l'accueil</a>")
+                $(".overlay-content").empty()
+                $(".overlay-content").append("<span>Grille nettoyée ! Bravo !</span><a onclick='reload()'>Rejouer</a><a>Retour à l'accueil</a>")
             }
         }
     }
@@ -138,3 +141,11 @@ function closeNav(){
     $("#allover").width("0%")
 }
 
+function reload(long:number,larg:number,bombs:number){
+    $("#board").empty()
+    $("#inputs").css("display","flex")
+    $("#confirm").css("display","flex")
+    $("#container-count").css("display","none")
+    $("#container-reload").css("display","none")
+    closeNav()
+}
