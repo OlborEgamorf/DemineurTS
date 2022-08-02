@@ -1,7 +1,7 @@
 
 import { dirname } from "path/posix";
 import { Request, Response, response } from "express";
-import { createGrid, Demineur } from "./demineur.js";
+import { createGrid, Demineur, clearCase, setFlag, clearAroundCase } from "./demineur.js";
 
 var express = require("express");
 var fs = require('fs');
@@ -26,10 +26,10 @@ app.use(session({
 app.use(express.static('static'))
 app.use(express.static('dist'))
 
-var dictJeux:Demineur[] = []
+var dictJeux:{[key:number]:Demineur} = {}
 
 app.get('/', function (req:Request, res:Response) {
-    res.render('demineur.ejs', {long:20,larg:20,bombs:100});
+    res.render('demineur.ejs', {long:20,larg:50,bombs:5});
 });
 
 app.get("/game/create", function (req:Request, res:Response) {
@@ -44,9 +44,53 @@ app.get("/game/create", function (req:Request, res:Response) {
     if (grid == undefined) {
         res.send("ERROR")
     } else {
-        dictJeux.push(grid)
+        dictJeux[0]=grid
         res.send({"visible":grid.getVisible(),"around":grid.getAround()})
     }
+});
+
+app.get("/game/clear", function (req:Request, res:Response) {
+    var x = req.query["x"]
+    var y = req.query["y"]
+    var grid:Demineur=dictJeux[0]
+   
+    if (grid.play == true) {
+        var liste = clearCase(grid,Number(x),Number(y))
+    } else {
+        var liste:[number,number,number,boolean][] = []
+    }
+    
+    res.send({"clear":liste})
+});
+
+app.get("/game/flag", function (req:Request, res:Response) {
+    var x = req.query["x"]
+    var y = req.query["y"]
+    var grid:Demineur=dictJeux[0]
+
+    if (grid.play == true) {
+        var isflag:boolean|null = setFlag(grid,Number(x),Number(y)) 
+        var isdone:boolean = grid.bombs==grid.rightflags
+    } else {
+        var isflag:boolean|null = null
+        var isdone:boolean = false
+    }
+    
+    res.send({"isflag":isflag,"isdone":isdone})
+});
+
+app.get("/game/cleararound", function (req:Request, res:Response) {
+    var x = req.query["x"]
+    var y = req.query["y"]
+    var grid:Demineur=dictJeux[0]
+    
+    if (grid.play == true) {
+        var liste = clearAroundCase(grid,Number(x),Number(y))
+    } else {
+        var liste:[number,number,number,boolean][] = []
+    }
+    
+    res.send({"clear":liste})
 });
 
 app.get("/game/clearcase")

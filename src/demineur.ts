@@ -6,6 +6,7 @@ export class Demineur {
     public tab:Case[][] = []
     public rightflags = 0
     public totalflags = 0
+    public play = true
 
     constructor (public long:number, public larg:number,public bombs:number,public user:string) {}
 
@@ -49,19 +50,17 @@ export function createGrid(long:number,larg:number,bombs:number,xstart:number,ys
         }
     }
 
-    grid.tab[xstart][ystart].start = true
-    grid.tab[xstart-1][ystart-1].start = true
-    grid.tab[xstart-1][ystart].start = true
-    grid.tab[xstart-1][ystart+1].start = true
-    grid.tab[xstart][ystart-1].start = true
-    grid.tab[xstart][ystart+1].start = true
-    grid.tab[xstart+1][ystart-1].start = true
-    grid.tab[xstart+1][ystart].start = true
-    grid.tab[xstart+1][ystart+1].start = true
+    for (let x=xstart-1;x<xstart+2;x++) {
+        for (let y=ystart-1;y<ystart+2;y++) {
+            if (x>=0 && y>=0 && x < long && y < larg) {
+                grid.tab[x][y].start = true
+            }
+        }
+    }
 
     for (let k=0;k<bombs;k++) {
         var newX:number = Math.floor(Math.random()*long)
-        var newY:number = Math.floor(Math.random()*long)
+        var newY:number = Math.floor(Math.random()*larg)
         if (grid.tab[newX][newY].bomb || grid.tab[newX][newY].start) {
             k--
         } else {
@@ -81,75 +80,69 @@ export function createGrid(long:number,larg:number,bombs:number,xstart:number,ys
 }
 
 
-function setFlag(grid:Demineur,xcase:number,ycase:number):number {
+export function setFlag(grid:Demineur,xcase:number,ycase:number):boolean {
     if (grid.tab[xcase][ycase].flag) {
         grid.tab[xcase][ycase].flag = false
         if (grid.tab[xcase][ycase].bomb) {
             grid.rightflags --
         }
+        return false
     } else {
         grid.tab[xcase][ycase].flag = true
         if (grid.tab[xcase][ycase].bomb) {
             grid.rightflags ++
         }
-    }
-    if (grid.rightflags == grid.bombs && grid.rightflags == grid.totalflags) {
-        return 2
-    } else {
-        return 1
+        return true
     }
 }
 
 
-function clearCase(grid:Demineur,xcase:number,ycase:number):number {
-    if (grid.tab[xcase][ycase].bomb) {
+export function clearCase(grid:Demineur,xcase:number,ycase:number):[number,number,number,boolean][] {
+    if (grid.tab[xcase][ycase].flag == true) {
+        return []
+    } else if (grid.tab[xcase][ycase].bomb == true) {
         grid.tab[xcase][ycase].visible = true
-        return 0
+        grid.play = false
+        return [[xcase,ycase,8,true]]
     } else {
-        var liste=defVisible(grid,xcase,ycase,[])
-        return checkAll(grid)
+        return defVisible(grid,xcase,ycase,[])
     }
 }
 
 
-function clearAroundCase(grid:Demineur,xcase:number,ycase:number):number {
+export function clearAroundCase(grid:Demineur,xcase:number,ycase:number):[number,number,number,boolean][] {
     var nbFlags:number = 0
-    var nbRightFlags:number = 0
-    var listeAround:Case[] = []
+    var listeAround:[number,number,Case][] = []
 
-    var checkLong = xcase
-    for (checkLong-1;checkLong++;checkLong+2) {
-        var checkLarg = ycase
-        for (checkLarg-1;checkLarg++;checkLarg+2) {
+    for (var checkLong=xcase-1;checkLong<xcase+2;checkLong++) {
+        for (var checkLarg=ycase-1;checkLarg<ycase+2;checkLarg++) {
             if (checkLong>=0 && checkLarg>=0 && checkLong < grid.long && checkLarg < grid.larg) {
-                listeAround.push(grid.tab[checkLong][checkLarg])
-                if (grid.tab[checkLong][checkLarg].flag) {
+                listeAround.push([checkLong,checkLarg,grid.tab[checkLong][checkLarg]])
+                if (grid.tab[checkLong][checkLarg].flag == true) {
                     nbFlags ++
-                    if (grid.tab[checkLong][checkLarg].bomb) {
-                        nbRightFlags ++
-                    }
                 }
             }
         }
     } 
 
+    console.log(nbFlags,grid.tab[xcase][ycase].around )
     if (nbFlags == grid.tab[xcase][ycase].around) {
         var i:number = 0
-        for (i;i++;i<listeAround.length) {
-            defVisible(grid,xcase,ycase,[])
+        var liste:[number,number,number,boolean][] = []
+        for (var i=0;i<listeAround.length;i++) {
+            if (listeAround[i][2].bomb == true && listeAround[i][2].flag == true) {} else {
+                liste=defVisible(grid,listeAround[i][0],listeAround[i][1],liste)
+            }
+            
         }
-        if (nbFlags == nbRightFlags) {
-            return checkAll(grid)
-        } else {
-            return 0
-        }
+        return liste
     } else {
-        return 1
+        return []
     }
 }
 
 
-function checkAll(grid:Demineur):number {
+function checkAll(grid:Demineur):boolean {
     var i:number = grid.long
     var countNV:number = 0
     for (i;i++;i<grid.long) {
@@ -158,20 +151,24 @@ function checkAll(grid:Demineur):number {
     }
 
     if (countNV == grid.bombs) {
-        return 2
+        return true
     } else {
-        return 1
+        return false
     }
 }
 
 function defVisible(grid:Demineur,xcase:number,ycase:number,liste:[number,number,number,boolean][]):[number,number,number,boolean][] {
     if (grid.tab[xcase][ycase].visible == false) {
         grid.tab[xcase][ycase].visible = true
+        liste.push([xcase,ycase,grid.tab[xcase][ycase].around,grid.tab[xcase][ycase].bomb])
         if (grid.tab[xcase][ycase].around == 0) {
             for (let x=xcase-1;x<xcase+2;x++) {
                 for (let y=ycase-1;y<ycase+2;y++) {
                     if (x>=0 && y>=0 && x < grid.long && y < grid.larg) {
-                        liste.push([x,y,grid.tab[xcase][ycase].around,grid.tab[xcase][ycase].bomb])
+                        liste.push([x,y,grid.tab[x][y].around,grid.tab[x][y].bomb])
+                        if (grid.tab[x][y].bomb == true) {
+                            grid.play = false
+                        }
                         liste=defVisible(grid,x,y,liste)
                     }
                 }

@@ -10,19 +10,36 @@
     <script src="inpage.js"></script>
 </head>
 
+<script>
+    window.addEventListener('contextmenu', (event) => {
+    event.preventDefault()
+})
+
+</script>
 
 <body>   
+    <div id="allover" class="overlay">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div class="overlay-content">
+
+        </div>
+    </div>
     <div class="flex-container">
-        <div class="game-board">
+        <div class="text">
+            Démineur classique
+        </div>
+        <div class="text" id="inputs">
+            <span class="span-input">Lignes<br><input type="number" value="10" min="5" max="100" id="rows"></span>
+            <span class="span-input">Colonnes<br><input type="number" value="10" min="5" max="100" id="cols"></span>
+            <span class="span-input">Bombes<br><input type="number" value="30" min="5" max="3000" id="bombs"></span>
+            
+        </div>
+        <div class="text" id="confirm">
+            <input type="button" onclick="createBlank()" value="Jouer !">
+        </div>
+        <div class="game-board" id="container-board">
             <br>
             <table id="board">
-                <%for (var i=0;i<long;i++) {%>
-                    <tr>
-                    <%for (var j=0;j<larg;j++){%> 
-                        <td class="game-cell" data-row=<%=i%> data-col=<%=j%> onclick="callCreate(<%=long%>,<%=larg%>,<%=bombs%>,<%=i%>,<%=j%>)"></td>
-                    <%}%> 
-                    </tr>
-                <%}%> 
             </table>
         </div>
     </div>
