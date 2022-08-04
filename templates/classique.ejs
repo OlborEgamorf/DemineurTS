@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Minesweeper</title>
+    <title>Démineur - Partie classique</title>
     <link rel="stylesheet" href="CSS.css">
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="inpage.js"></script>
@@ -14,7 +14,8 @@
     window.addEventListener('contextmenu', (event) => {
     event.preventDefault()
 })
-
+    getName()
+    createSocket("<%=gameid%>")
 </script>
 
 <body>   
@@ -26,7 +27,8 @@
     </div>
     <div class="flex-container">
         <div class="text">
-            Démineur classique
+            Démineur classique <br>
+            Code : <%=gameid%>
         </div>
 
         <div class="text" id="inputs">
@@ -36,11 +38,11 @@
         </div>
 
         <div class="text" id="confirm">
-            <input type="button" onclick="createBlank()" value="Jouer !">
+            <input type="button" onclick="callValues()" value="Jouer !">
         </div>
 
         <div class="text" id="container-count" style="display: none;">
-            <img src='flag.png' class='flag count'> <span id="counting" data-count="0" data-total="0">0/0</span>
+            
         </div>
 
         <div class="game-board" id="container-board">
@@ -50,7 +52,11 @@
         </div>
 
         <div class="text" id="container-reload" style="margin-top:10px;display: none;">
-            <input type="button" onclick="reload()" value="Relancer">
+            <input type="button" onclick="callReload()" value="Relancer">
+        </div>
+
+        <div class="text" id="container-joueurs">
+
         </div>
         
     </div>

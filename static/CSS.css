@@ -15,7 +15,6 @@ body {
 .revealed {
     font-family: "Press Start";
     background-color: #4a4a4a;
-    font-size: 80%;
     text-align: center;
     border: none;
 }
@@ -36,8 +35,8 @@ body {
 }
 
 td {
-    height: 25px;
-    width: 25px;
+    height: 30px;
+    width: 30px;
     background-color: #5f5f5f;
     border: 1.5px solid;
     border-top-color: #808080;
@@ -46,10 +45,10 @@ td {
     border-left-color: #808080;
     text-align: center;
     vertical-align: middle;
-    min-width: 25px;
-    min-height: 25px;
-    max-width: 25px;
-    max-height: 25px;
+    min-width: 30px;
+    min-height: 30px;
+    max-width: 30px;
+    max-height: 30px;
     padding: 0;
     user-select: none;
 }
@@ -80,14 +79,14 @@ td {
 }
 
 .bomb {
-    height: 25px;
-    width: 25px;
+    height: 30px;
+    width: 30px;
     background-color: red;
 }
 
 .flag {
-    height: 22px;
-    width: 22px;
+    height: 20px;
+    width: 20px;
     
 }
 
@@ -190,4 +189,26 @@ td {
 
 .span-input {
     margin:10px;
+}
+
+.image_picker_image {
+    width: 30px;
+    height: 30px;
+    background-color: #5f5f5f;
+}
+
+.grid {
+    font-family: Roboto, Arial, Tahoma, sans-serif;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr;
+    
+}
+
+.grid-element {
+    width:200px;
+    height: 200px;
+    background-color: #5f5f5f;
+    justify-self: center;
+    text-align: center;
 }

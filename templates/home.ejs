@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Démineur - Home</title>
+    <link rel="stylesheet" href="CSS.css">
+    <script src="inpage.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+</head>
+
+<body>   
+    <div id="allover" class="overlay">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div class="overlay-content">
+
+        </div>
+    </div>
+    <div class="flex-container">
+        
+    </div>
+
+    <div class="grid">
+        <div class="grid-element">
+            <span><br>Créer/Rejoindre une partie<br><br>Entrez un code de 1 à 4 chiffres<br><br></span>
+            <input type="text" maxlength="4" id="code">
+            <input type="button" onclick="getCode()" value="Accéder">
+        </div>
+    </div>
+    <script>
+        var name=getName() 
+        if (name != null) {
+            $(".flex-container").append(`<div class="text">Bienvenue, ${name} </div>`)
+        }
+
+        function getCode() {
+            var code = $("#code").val()
+            if (code != "") {
+                window.location.replace(`/classique/${code}`)
+            }
+
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Démineur - Connection</title>
+    <link rel="stylesheet" href="CSS.css">
+    <script src="inpage.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="image-picker-0.3.1/image-picker/image-picker.min.js"></script>
+    <link rel="stylesheet" href="image-picker-0.3.1/image-picker/image-picker.css">
+</head>
+
+<body>   
+    <div id="allover" class="overlay">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div class="overlay-content">
+
+        </div>
+    </div>
+    <div class="flex-container">
+        <div class="text">
+            <span class="span-input">Sélectionnez votre nom<br><input type="text" name="name" id="name" maxlength="20" required></span>
+            <span class="span-input">
+                Choisissez votre couleur de drapeau
+                <select>
+                    <option selected data-img-src="flagRouge.png" value="Rouge">Rouge</option>
+                    <option data-img-src="flagBleu.png" value="Bleu">Bleu</option>
+                    <option data-img-src="flagJaune.png" value="Jaune">Jaune</option>
+                    <option data-img-src="flagOrange.png" value="Orange">Orange</option>
+                    <option data-img-src="flagVert.png" value="Vert">Vert</option>
+                    <option data-img-src="flagVertF.png" value="VertF">VertF</option>
+                    <option data-img-src="flagBlanc.png" value="Blanc">Blanc</option>
+                    <option data-img-src="flagRose.png" value="Rose">Rose</option>
+                    <option data-img-src="flagCyan.png" value="Cyan">Cyan</option>
+                    <option data-img-src="flagTurquoise.png" value="Turquoise">Turquoise</option>
+                </select>
+                <script>$("select").imagepicker({hide_select:false})</script>
+            </span>
+            
+        </div>
+        <div class="text">
+            <input type="submit" name="Valider" onclick="saveUser()">
+        </div>
+    </div>
+        
+</body>
+
+</html>
