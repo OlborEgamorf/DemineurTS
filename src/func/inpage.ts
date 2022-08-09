@@ -1,3 +1,5 @@
+//import ReconnectingWebSocket from "reconnecting-websocket"
+
 var socket:null|WebSocket = null
 
 function createSocket(gameid:string) {
@@ -10,7 +12,7 @@ function createSocket(gameid:string) {
         var data = JSON.parse(event.data)
         console.log(data,data["type"])
         if (data["type"] == "blank") {
-            setValues(data)
+            setStart(data)
         } else if (data.type == "create") {
             setCreate(data)
         } else if (data.type == "flag") {
@@ -18,7 +20,7 @@ function createSocket(gameid:string) {
         } else if (data.type == "clear") {
             setClear(data)
         } else if (data.type == "createall") {
-            setValues(data)
+            setStart(data)
             setCreate(data)
         } else if (data.type == "reload") {
             reload()
@@ -28,10 +30,31 @@ function createSocket(gameid:string) {
             setLeave(data)
         } else if (data.type == "allplayers") {
             setAllPlayers(data,session!.id)
+        } else if (data.type == "waiting" || data.type == "values") {
+            setWait(data)
         }
     })
 }
 
+
+function setWait(data:any) {
+    var leader:string = data["leader"]
+    var long:number = data["long"]
+    var larg:number = data["larg"]
+    var bombs:number = data["bombs"]
+    if (leader == localStorage.getItem("playerId")) {
+        $("#inputs").empty()
+        $("#inputs").append(`<span class="span-input">Lignes<br><input type="number" value="${long}" min="5" max="100" id="rows" onfocusout="callValues()"></span>
+        <span class="span-input">Colonnes<br><input type="number" value="${larg}" min="5" max="100" id="cols" onfocusout="callValues()"></span>
+        <span class="span-input">Bombes<br><input type="number" value="${bombs}" min="5" max="3000" id="bombs" onfocusout="callValues()"></span>
+        <input type="button" onclick="callStart()" value="Jouer !">`)
+    } else {
+        $("#inputs").empty()
+        $("#inputs").append(`<span class="span-input">Lignes<br>${long}</span>
+        <span class="span-input">Colonnes<br>${larg}</span>
+        <span class="span-input">Bombes<br>${bombs}</span>`)
+    }
+}
 
 function callValues() {
     var long:number = Number($("#rows").val())
@@ -40,7 +63,11 @@ function callValues() {
     socket!.send(JSON.stringify({type:"values",long:long,larg:larg,bombs:bombs}))
 }
 
-function setValues(data:any):boolean {
+function callStart() {
+    socket!.send(JSON.stringify({type:"start"}))
+}
+
+function setStart(data:any):boolean {
     var long:number = data["long"]
     var larg:number = data["larg"]
     var bombs:number = data["bombs"]
@@ -50,7 +77,6 @@ function setValues(data:any):boolean {
         return false
     } else {
         $("#inputs").css("display","none")
-        $("#confirm").css("display","none")
         $("#container-count").css("display","flex")
         $("#container-count").empty()
         $("#container-count").append(`<img src='flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}/${bombs}</span>`)
@@ -110,6 +136,10 @@ function setJoin(data:any) {
 function setLeave(data:any) {
     var joueur = data["joueur"]
     $(`#${joueur.id}`).remove()
+    console.log(data["leader"] == localStorage.getItem("playerId"),$("#inputs").css("display")=="flex")
+    if (data["leader"] == localStorage.getItem("playerId") == true) {
+        setWait(data)
+    }
 }
 
 function setAllPlayers(data:any,id:string) {
@@ -133,6 +163,7 @@ function callClear(caseG:HTMLElement,i:number,j:number):void {
 function setClear(data:any):void {
     var clear:[number, number, number, boolean][]=data["liste"]
     var nom=data["nom"]
+    var isdone:boolean = data["isdone"]
     var defeat:boolean=false
     for (var coord of clear) {
         $(`#${coord[0]}_${coord[1]}`).addClass("revealed")
@@ -146,6 +177,7 @@ function setClear(data:any):void {
             $(`#${coord[0]}_${coord[1]}`).append(`${coord[2]}`)
         }
     }
+
     if (defeat == true) {
         for (var td of document.getElementsByTagName("td")) {
             td.setAttribute("onclick","")
@@ -153,7 +185,11 @@ function setClear(data:any):void {
         }
         $("#allover").width("100%")
         $(".overlay-content").empty()
-        $(".overlay-content").append(`<span>${nom} a fait exploser une bombe !</span><a onclick='callReload()'>Rejouer</a><a>Retour à l'accueil</a>`)
+        $(".overlay-content").append(`<span>${nom} a fait exploser une bombe !</span><a onclick='callReload()'>Rejouer</a><a href='/'>Retour à l'accueil</a>`)
+    } else if (isdone == true) {
+        $("#allover").width("100%")
+        $(".overlay-content").empty()
+        $(".overlay-content").append("<span>Grille nettoyée ! Bravo !</span><a onclick='callReload()'>Rejouer</a><a href='/'>Retour à l'accueil</a>")
     }
 }    
 
@@ -196,7 +232,7 @@ function setFlag(data:any):boolean {
     if (isdone == true) {
         $("#allover").width("100%")
         $(".overlay-content").empty()
-        $(".overlay-content").append("<span>Grille nettoyée ! Bravo !</span><a onclick='callReload()'>Rejouer</a><a>Retour à l'accueil</a>")
+        $(".overlay-content").append("<span>Grille nettoyée ! Bravo !</span><a onclick='callReload()'>Rejouer</a><a href='/'>Retour à l'accueil</a>")
     }
 
     return false
@@ -214,7 +250,6 @@ function callReload():void {
 function reload(){
     $("#board").empty()
     $("#inputs").css("display","flex")
-    $("#confirm").css("display","flex")
     $("#container-count").css("display","none")
     $("#container-reload").css("display","none")
     closeNav()

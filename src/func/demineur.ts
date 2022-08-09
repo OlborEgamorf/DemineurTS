@@ -8,24 +8,32 @@ class Case {
     constructor (public bomb:boolean, public flag:boolean, public visible:boolean, public around:number, public start:boolean) {}
 }
 
+export class Versus {
+   
+}
+
 export class Demineur {
     public tab:Case[][] = []
     public rightflags:number = 0
     public totalflags:number = 0
     public play:boolean = false
+    public blank:boolean = false
     public joueurs:Joueur[] = []
-    public long:number = 0
-    public larg:number = 0
-    public bombs:number = 0
+    public ready:string[] = []
+    public long:number = 15
+    public larg:number = 15
+    public bombs:number = 30
+    public leader:string = ""
 
-    reset(){
+    constructor (leader:string) {
+        this.setLeader(leader)
+    }
+
+    reset():void{
         this.tab = []
         this.rightflags = 0
         this.totalflags = 0
         this.play = false
-        this.long = 0
-        this.larg = 0
-        this.bombs = 0 
     }
 
     getVisible():Boolean[][] {
@@ -61,24 +69,31 @@ export class Demineur {
         return flags
     }
 
-    join(id:string,nom:string,color:string){
+    join(id:string,nom:string,color:string):void{
         this.joueurs.push({id:id,nom:nom,color:color})
     }
 
-    leave(id:string) {
-        this.joueurs = this.joueurs.filter((val,i,joueur) => {val.id != id})
+    leave(id:string):void {
+        this.joueurs = this.joueurs.filter((around,i,joueur) => {return around.id != id})
+        console.log(this.joueurs)
+        if (id == this.leader && this.joueurs.length != 0) {
+            this.setLeader(this.joueurs[0].id)
+        }
+    }
+
+    setLeader(id:string):void {
+        this.leader = id
     }
     
-
-    setValues(long:number,larg:number,bombs:number){
-        if (this.long == 0 && this.larg == 0 && this.bombs == 0) {
+    setValues(long:number,larg:number,bombs:number):void{
+        if (this.play == false) {
             this.long=long
             this.larg=larg
             this.bombs=bombs
         }
     }
 
-    createGrid(xstart:number,ystart:number) {
+    createGrid(xstart:number,ystart:number):Demineur {
         if (this.play == true) {
             return this
         } 
@@ -117,6 +132,7 @@ export class Demineur {
         
         this.defVisible(xstart,ystart,[])
         this.play = true
+        this.blank = false
         return this 
     }
 
@@ -202,4 +218,22 @@ export class Demineur {
         return liste
     }
 
+    isDone() :boolean{
+        var sum:number = 0
+        for (var ligne of this.tab) {
+            for (var caseG of ligne) {
+                if (caseG.visible == false) {
+                    sum+=1
+                }
+            }
+        }
+
+        console.log(sum)
+        if (sum == this.bombs) {
+            this.play = false
+            return true
+        } else {
+            return false
+        }
+    }
 }

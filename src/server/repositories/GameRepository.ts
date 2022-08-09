@@ -7,8 +7,8 @@ export class GameRepository {
         private games = new Map<string, Demineur>
     ) {}
 
-    create(id:string):Demineur {
-        var grid = new Demineur()
+    create(id:string,leader:string):Demineur {
+        var grid = new Demineur(leader)
         this.games.set(id,grid)
         return grid
     }
@@ -19,6 +19,7 @@ export class GameRepository {
 
     clean(id:string){
         const game = this.games.get(id)
+        console.log(game?.joueurs.filter(p => this.connections.has(p.id,id)).length)
         if (game && game.joueurs.filter(p => this.connections.has(p.id,id)).length == 0) {
             this.games.delete(id)
         }

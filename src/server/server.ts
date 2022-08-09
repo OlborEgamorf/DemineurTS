@@ -8,7 +8,7 @@ import { resolve } from 'path'
 import { Demineur } from '../func/demineur'
 import { ConnectionRepository } from './repositories/ConnectionRepository'
 import { GameRepository } from './repositories/GameRepository'
-import { publishBlank, publishClear, publishCreate, publishCreateSingle, publishFlag, publishPlayerJoin, publishPlayerLeave, publishPlayersIn, publishReload } from './socket'
+import { publishBlank, publishBlankSingle, publishClear, publishCreate, publishCreateSingle, publishFlag, publishPlayerJoin, publishPlayerLeave, publishPlayersIn, publishReload, publishValues } from './socket'
 
 interface IQuerystring {
     username: string;
@@ -44,8 +44,6 @@ fastify.register(async (f) => {
         const color = query.color
         const gameId = query.gameid
 
-        console.log("JE SUIS CONNECTE EHOH")
-
         if (!gameId) {
             connection.end()
             f.log.error("GAMEID")
@@ -58,52 +56,55 @@ fastify.register(async (f) => {
             return
         }
 
-        const game = games.find(gameId) ?? games.create(gameId)
+        const game = games.find(gameId) ?? games.create(gameId,playerId)
         connections.persist(playerId,gameId,connection)
         game.join(playerId,playerName,color)
         publishPlayerJoin(game,connections,gameId,{id:playerId,nom:playerName,color:color})
         publishPlayersIn(game,connection)
         if (game.play == true) {
             publishCreateSingle(game,connection)
+        } else if (game.blank == true) {
+            publishBlankSingle(game,connection)
         }
 
         connection.socket.on("message", (rawMessage) => {
-            console.log("RECU")
             const message = JSON.parse(rawMessage.toLocaleString())
             if (message.type == "values") {
                 game.setValues(Number(message.long),Number(message.larg),Number(message.bombs))
-                publishBlank(game,connections,gameId)
+                publishValues(game,connections,gameId)
             } else if (message.type == "create") {
                 game.createGrid(Number(message.xstart),Number(message.ystart))
                 publishCreate(game,connections,gameId)
             } else if (message.type == "flag") {
                 var isflag = game.setFlag(Number(message.x),Number(message.y))
-                var isdone:boolean = game.bombs==game.rightflags
-                publishFlag(game,connections,gameId,isflag,isdone,color,Number(message.x),Number(message.y))
+                publishFlag(game,connections,gameId,isflag,game.isDone(),color,Number(message.x),Number(message.y))
             } else if (message.type == "clear") {
                 var liste = game.clearCase(Number(message.x),Number(message.y))
-                publishClear(game,connections,gameId,liste,message.nom)
+                publishClear(game,connections,gameId,liste,message.nom,game.isDone())
             } else if (message.type == "cleararound") {
                 var liste = game.clearAroundCase(Number(message.x),Number(message.y))
-                publishClear(game,connections,gameId,liste,message.nom)
+                publishClear(game,connections,gameId,liste,message.nom,game.isDone())
             } else if (message.type == "reload") {
                 game.reset()
                 publishReload(game,connections,gameId)
+            } else if (message.type == "start") {
+                game.blank = true
+                publishBlank(game,connections,gameId)
             }
             console.log(message)
         })
 
         connection.socket.on("close", () => {
-            publishPlayerLeave(game,connections,gameId,{id:playerId,nom:playerName,color:color})
-            connections.remove(playerId,gameId)
             game.leave(playerId)
-
+            publishPlayerLeave(game,connections,gameId,{id:playerId,nom:playerName,color:color})
+            games.clean(gameId)
+            connections.remove(playerId,gameId)
         })
 
     })
 })
 
-fastify.listen({port:8000}).catch((err) => {
+fastify.listen({port:8888,}).catch((err) => { // host:"45.32.147.186"
     fastify.log.error(err)
     process.exit(1)
 }).then( () => {
@@ -119,12 +120,10 @@ fastify.get("/login", (req,reply) => {
 })
 
 fastify.get<requestGeneric>("/classique/:gameid", (req,reply) => {
-    console.log(req.params["gameid"],"\n")
     if (req.params["gameid"] == "") {
         var gameid = String(Math.floor(Math.random() * 10000))
         reply.redirect(`/classique/${gameid}`)
     } else if (isNaN(Number(req.params["gameid"])) == true) {
-        console.log("OUI")
         reply.sendFile(req.params["gameid"])
     } else {
         var gameid = req.params["gameid"]

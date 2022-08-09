@@ -1,5 +1,6 @@
 body {
     background-color: #000;
+    margin:20px
 }
 
 #board {
@@ -109,12 +110,13 @@ td {
     justify-content: center;
     font-family: Roboto, Arial, Tahoma, sans-serif;
     margin-bottom: 20px;
+    width: fit-content;
 }
 
 .game-board {
     display: flex;
     justify-content: center;
-    
+    width: fit-content;
 }
 
 
