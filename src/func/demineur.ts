@@ -1,3 +1,5 @@
+import { cloneDeep } from "lodash"
+
 export type Joueur = {
     id:string,
     nom:string,
@@ -8,21 +10,15 @@ class Case {
     constructor (public bomb:boolean, public flag:boolean, public visible:boolean, public around:number, public start:boolean) {}
 }
 
-export class Versus {
-   
-}
-
 export class Demineur {
     public tab:Case[][] = []
-    public rightflags:number = 0
     public totalflags:number = 0
     public play:boolean = false
     public blank:boolean = false
     public joueurs:Joueur[] = []
-    public ready:string[] = []
     public long:number = 15
     public larg:number = 15
-    public bombs:number = 30
+    public bombs:number = 40
     public leader:string = ""
 
     constructor (leader:string) {
@@ -31,7 +27,6 @@ export class Demineur {
 
     reset():void{
         this.tab = []
-        this.rightflags = 0
         this.totalflags = 0
         this.play = false
     }
@@ -75,7 +70,6 @@ export class Demineur {
 
     leave(id:string):void {
         this.joueurs = this.joueurs.filter((around,i,joueur) => {return around.id != id})
-        console.log(this.joueurs)
         if (id == this.leader && this.joueurs.length != 0) {
             this.setLeader(this.joueurs[0].id)
         }
@@ -140,16 +134,10 @@ export class Demineur {
         if (this.tab[xcase][ycase].flag) {
             this.tab[xcase][ycase].flag = false
             this.totalflags --
-            if (this.tab[xcase][ycase].bomb) {
-                this.rightflags --
-            }
             return false
         } else {
             this.tab[xcase][ycase].flag = true
             this.totalflags ++
-            if (this.tab[xcase][ycase].bomb) {
-                this.rightflags ++
-            }
             return true
         }
     }
@@ -181,7 +169,6 @@ export class Demineur {
             }
         } 
     
-        console.log(nbFlags,this.tab[xcase][ycase].around )
         if (nbFlags == this.tab[xcase][ycase].around) {
             var i:number = 0
             var liste:[number,number,number,boolean][] = []
@@ -218,7 +205,7 @@ export class Demineur {
         return liste
     }
 
-    isDone() :boolean{
+    isDone():boolean{
         var sum:number = 0
         for (var ligne of this.tab) {
             for (var caseG of ligne) {
@@ -227,13 +214,176 @@ export class Demineur {
                 }
             }
         }
-
-        console.log(sum)
         if (sum == this.bombs) {
             this.play = false
             return true
         } else {
             return false
         }
+    }
+
+    isLose():boolean{
+        var lose:boolean=false
+        for (var ligne of this.tab) {
+            for (var caseG of ligne) {
+                if (caseG.visible == true && caseG.bomb == true) {
+                    lose=true
+                }
+            }
+        }
+        return lose
+    }
+}
+
+
+export class Versus {
+    public grilles:{[key:string]:Demineur} = {}
+    public ready:{[key:string]:boolean} = {}
+    public start:{[key:string]:[number,number]} = {}
+    public joueurs:Joueur[] = []
+    public long:number = 15
+    public larg:number = 15
+    public bombs:number = 40
+    public leader:string = ""
+    public play:boolean = false
+    public blank:boolean = false
+
+    constructor (leader:string) {
+        this.setLeader(leader)
+    }
+
+    reset(){
+        for (var joueur of this.joueurs) {
+            this.grilles[joueur.id].reset()
+            this.ready[joueur.id] = false
+            this.start[joueur.id] = [-1,-1]
+        }
+        this.play = false
+    }
+
+    addStart(id:string,xstart:number,ystart:number) {
+        if (this.start[id].every((value, index) => value === [-1,-1][index])) {
+            this.start[id]=[xstart,ystart]
+        }
+        
+    }
+
+    isStart():boolean{
+        var start = true
+        for (var joueur of this.joueurs) {
+            if (this.start[joueur.id].every((value, index) => value === [-1,-1][index])) {
+                start = false
+            }
+        }
+        return start
+    }
+
+    setReady(id:string){
+        if (this.ready[id] == false) {
+            this.ready[id] = true
+        } else {
+            this.ready[id] = false
+        }
+    }
+
+    isReady():boolean{
+        var ready = true
+        for (var joueur of this.joueurs) {
+            if (this.ready[joueur.id] == false) {
+                ready = false
+            }
+        }
+        return ready
+    }
+
+    join(id:string,nom:string,color:string):void{
+        this.joueurs.push({id:id,nom:nom,color:color})
+        this.grilles[id]=new Demineur(id)
+        this.ready[id]=false
+        this.start[id]=[-1,-1]
+    }
+
+    leave(id:string):void {
+        this.joueurs = this.joueurs.filter((around,i,joueur) => {return around.id != id})
+        if (id == this.leader && this.joueurs.length != 0) {
+            this.setLeader(this.joueurs[0].id)
+        }
+    }
+
+    setLeader(id:string):void {
+        this.leader = id
+    }
+
+    setValues(long:number,larg:number,bombs:number):void{
+        for (var joueur of this.joueurs) {
+            this.grilles[joueur.id].setValues(long,larg,bombs)
+        }
+        this.long=long
+        this.larg=larg
+        this.bombs=bombs
+    }
+
+    getStill():string[]{
+        var still:string[] = []
+        for (var joueur of this.joueurs) {
+            if (this.grilles[joueur.id].play == true) {
+                still.push(joueur.nom)
+            }
+        }
+        return still
+    }
+
+    createGrid():void {
+        if (this.play == true) {
+            return
+        } 
+        var tab:Case[][] = []
+        for (let i=0;i<this.long;i++) {
+            tab.push([])
+            for (let j=0;j<this.larg;j++) {
+                var newCase = new Case(false,false,false,0,false)
+                tab[i].push(newCase)
+            }
+        }
+        
+        for (var joueur of this.joueurs) {
+            var xstart:number = this.start[joueur.id][0]
+            var ystart:number = this.start[joueur.id][1]
+            for (let x=xstart-1;x<xstart+2;x++) {
+                for (let y=ystart-1;y<ystart+2;y++) {
+                    if (x>=0 && y>=0 && x < this.long && y < this.larg) {
+                        tab[x][y].start = true
+                    }
+                }
+            }
+        }
+        
+    
+        for (let k=0;k<this.bombs;k++) {
+            var newX:number = Math.floor(Math.random()*this.long)
+            var newY:number = Math.floor(Math.random()*this.larg)
+            if (tab[newX][newY].bomb || tab[newX][newY].start) {
+                k--
+            } else {
+                tab[newX][newY].bomb = true
+                for (let x=newX-1;x<newX+2;x++) {
+                    for (let y=newY-1;y<newY+2;y++) {
+                        if (x>=0 && y>=0 && x < this.long && y < this.larg) {
+                            tab[x][y].around ++
+                        }
+                    }
+                }            
+            }
+        }
+        
+        for (var joueur of this.joueurs) {
+            this.grilles[joueur.id].tab=cloneDeep(tab)
+            this.grilles[joueur.id].defVisible(this.start[joueur.id][0],this.start[joueur.id][1],[])
+            this.grilles[joueur.id].play = true
+            this.grilles[joueur.id].blank = false
+        }
+
+        this.play = true
+        this.blank = false
     }
 }

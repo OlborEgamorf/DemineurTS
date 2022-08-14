@@ -27,6 +27,11 @@
             <input type="text" maxlength="4" id="code">
             <input type="button" onclick="getCode()" value="Accéder">
         </div>
+        <div class="grid-element">
+            <span><br>Versus<br><br>Entrez un code de 1 à 4 chiffres<br><br></span>
+            <input type="text" maxlength="4" id="codevs">
+            <input type="button" onclick="getCodeVersus()" value="Accéder">
+        </div>
     </div>
     <script>
         var name=getName() 
@@ -39,7 +44,13 @@
             if (code != "") {
                 window.location.replace(`/classique/${code}`)
             }
+        }
 
+        function getCodeVersus() {
+            var code = $("#codevs").val()
+            if (code != "") {
+                window.location.replace(`/versus/${code}`)
+            }
         }
     </script>
 </body>

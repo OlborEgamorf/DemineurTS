@@ -1,10 +1,10 @@
-import { Demineur } from "../../func/demineur";
+import { Demineur, Versus } from "../../func/demineur";
 import { ConnectionRepository } from "./ConnectionRepository";
 
 export class GameRepository {
     constructor (
         private connections:ConnectionRepository,
-        private games = new Map<string, Demineur>
+        private games = new Map<string, Demineur|Versus>
     ) {}
 
     create(id:string,leader:string):Demineur {
@@ -13,7 +13,13 @@ export class GameRepository {
         return grid
     }
 
-    find(id:string):Demineur|undefined {
+    createVersus(id:string,leader:string):Versus {
+        var grid = new Versus(leader)
+        this.games.set(id,grid)
+        return grid
+    }
+
+    find(id:string):Demineur|undefined|Versus {
         return this.games.get(id)
     }
 
@@ -24,6 +30,4 @@ export class GameRepository {
             this.games.delete(id)
         }
     }
-
-
 }

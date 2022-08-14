@@ -203,7 +203,7 @@ td {
     font-family: Roboto, Arial, Tahoma, sans-serif;
     display: grid;
     grid-template-rows: 1fr 1fr;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     
 }
 

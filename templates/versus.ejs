@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Démineur - Versus</title>
+    <link rel="stylesheet" href="CSS.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="inpage.js"></script>
+</head>
+
+<script>
+    window.addEventListener('contextmenu', (event) => {
+    event.preventDefault()
+})
+    getName()
+    createSocketVersus("<%=gameid%>")
+</script>
+
+<body>   
+    <div id="allover" class="overlay">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div class="overlay-content">
+
+        </div>
+    </div>
+    <div class="flex-container">
+        <div class="text">
+            Démineur Versus <br>
+            Code : <%=gameid%>
+        </div>
+
+        <div class="text" id="inputs">
+        </div>
+
+        <div class="text" id="container-count" style="display: none;">
+            
+        </div>
+
+        <div class="game-board" id="container-board">
+            <br>
+            <table id="board">
+            </table>
+        </div>
+
+        <div class="text" id="container-reload" style="margin-top:10px;display: none;">
+            <input type="button" onclick="callReload()" value="Relancer">
+        </div>
+
+        <div class="text" id="container-joueurs">
+
+        </div>
+
+        <div class="text" id="container-reload" style="margin-top:10px">
+            <a href="/">Menu</a>
+        </div>
+        
+    </div>
+        
+</body>
+
+</html>

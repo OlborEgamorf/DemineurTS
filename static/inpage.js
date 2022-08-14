@@ -33,17 +33,63 @@ function createSocket(gameid) {
             setJoin(data);
         }
         else if (data.type == "leave") {
-            setLeave(data);
+            setLeave(data, false);
         }
         else if (data.type == "allplayers") {
             setAllPlayers(data, session.id);
         }
         else if (data.type == "waiting" || data.type == "values") {
-            setWait(data);
+            setWait(data, false);
+        }
+        else if (data.type == "message") {
+            setMessage(data);
         }
     });
 }
-function setWait(data) {
+function createSocketVersus(gameid) {
+    const session = getSession();
+    const searchParams = new URLSearchParams({ ...session, gameid });
+    socket = new WebSocket(`${window.location.protocol.replace("http", "ws")}//${window.location.host}/wsversus?${searchParams.toString()}`);
+    socket.addEventListener('message', function (event) {
+        var data = JSON.parse(event.data);
+        console.log(data, data["type"]);
+        if (data["type"] == "blank") {
+            setStart(data);
+        }
+        else if (data.type == "create") {
+            setCreate(data);
+        }
+        else if (data.type == "flag") {
+            setFlag(data);
+        }
+        else if (data.type == "clear") {
+            setClear(data);
+        }
+        else if (data.type == "createall") {
+            setStart(data);
+            setCreate(data);
+        }
+        else if (data.type == "reload") {
+            reload();
+        }
+        else if (data.type == "join") {
+            setJoin(data);
+        }
+        else if (data.type == "leave") {
+            setLeave(data, true);
+        }
+        else if (data.type == "allplayers") {
+            setAllPlayers(data, session.id);
+        }
+        else if (data.type == "waiting" || data.type == "values") {
+            setWait(data, true);
+        }
+        else if (data.type == "message") {
+            setMessage(data);
+        }
+    });
+}
+function setWait(data, versus) {
     var leader = data["leader"];
     var long = data["long"];
     var larg = data["larg"];
@@ -60,6 +106,9 @@ function setWait(data) {
         $("#inputs").append(`<span class="span-input">Lignes<br>${long}</span>
         <span class="span-input">Colonnes<br>${larg}</span>
         <span class="span-input">Bombes<br>${bombs}</span>`);
+        if (versus == true) {
+            $("#inputs").append(`<input type="button" onclick="callReady()" value="Prêt !">`);
+        }
     }
 }
 function callValues() {
@@ -70,6 +119,9 @@ function callValues() {
 }
 function callStart() {
     socket.send(JSON.stringify({ type: "start" }));
+}
+function callReady() {
+    socket.send(JSON.stringify({ type: "ready" }));
 }
 function setStart(data) {
     var long = data["long"];
@@ -97,6 +149,10 @@ function setStart(data) {
 }
 function callCreate(i, j) {
     socket.send(JSON.stringify({ type: "create", xstart: i, ystart: j }));
+    var td = $(`#${i}_${j}`);
+    td.removeClass("game-cell");
+    td.addClass("revealed");
+    td.addClass("c0");
 }
 function setCreate(data) {
     var visible = data["visible"];
@@ -129,12 +185,12 @@ function setJoin(data) {
     var joueur = data["joueur"];
     $("#container-joueurs").append(`<span style="margin-right:10px" id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</span>`);
 }
-function setLeave(data) {
+function setLeave(data, versus) {
     var joueur = data["joueur"];
     $(`#${joueur.id}`).remove();
     console.log(data["leader"] == localStorage.getItem("playerId"), $("#inputs").css("display") == "flex");
     if (data["leader"] == localStorage.getItem("playerId") == true) {
-        setWait(data);
+        setWait(data, versus);
     }
 }
 function setAllPlayers(data, id) {
@@ -154,9 +210,6 @@ function callClear(caseG, i, j) {
 }
 function setClear(data) {
     var clear = data["liste"];
-    var nom = data["nom"];
-    var isdone = data["isdone"];
-    var defeat = false;
     for (var coord of clear) {
         $(`#${coord[0]}_${coord[1]}`).addClass("revealed");
         $(`#${coord[0]}_${coord[1]}`).addClass(`c${coord[2]}`);
@@ -164,26 +217,21 @@ function setClear(data) {
         $(`#${coord[0]}_${coord[1]}`).empty();
         if (coord[3] == true) {
             $(`#${coord[0]}_${coord[1]}`).append("<img src='bomb.png' class='bomb'>");
-            defeat = true;
         }
         else if (coord[2] != 0) {
             $(`#${coord[0]}_${coord[1]}`).append(`${coord[2]}`);
         }
     }
-    if (defeat == true) {
-        for (var td of document.getElementsByTagName("td")) {
-            td.setAttribute("onclick", "");
-            td.setAttribute("oncontextmenu", "");
-        }
-        $("#allover").width("100%");
-        $(".overlay-content").empty();
-        $(".overlay-content").append(`<span>${nom} a fait exploser une bombe !</span><a onclick='callReload()'>Rejouer</a><a href='/'>Retour à l'accueil</a>`);
+}
+function setMessage(data) {
+    var mess = data["mess"];
+    for (var td of document.getElementsByTagName("td")) {
+        td.setAttribute("onclick", "");
+        td.setAttribute("oncontextmenu", "");
     }
-    else if (isdone == true) {
-        $("#allover").width("100%");
-        $(".overlay-content").empty();
-        $(".overlay-content").append("<span>Grille nettoyée ! Bravo !</span><a onclick='callReload()'>Rejouer</a><a href='/'>Retour à l'accueil</a>");
-    }
+    $("#allover").width("100%");
+    $(".overlay-content").empty();
+    $(".overlay-content").append(`<span>${mess}</span><a onclick='callReload()'>Rejouer</a><a href='/'>Retour à l'accueil</a>`);
 }
 function callFlag(caseG, i, j) {
     if ($(caseG).hasClass("revealed") == false) {
@@ -192,7 +240,6 @@ function callFlag(caseG, i, j) {
 }
 function setFlag(data) {
     var isflag = data["isflag"];
-    var isdone = data["isdone"];
     var x = data["x"];
     var y = data["y"];
     var color = data["color"];
@@ -215,11 +262,6 @@ function setFlag(data) {
         count.dataset.count = String(Number(count.dataset.count) + add);
         $(count).empty();
         $(count).append(`${count.dataset.count}/${count.dataset.total}`);
-    }
-    if (isdone == true) {
-        $("#allover").width("100%");
-        $(".overlay-content").empty();
-        $(".overlay-content").append("<span>Grille nettoyée ! Bravo !</span><a onclick='callReload()'>Rejouer</a><a href='/'>Retour à l'accueil</a>");
     }
     return false;
 }
