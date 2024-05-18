@@ -46,17 +46,17 @@ fastify.register(async (f) => {
         const gameId = query.gameid
 
         if (!gameId) {
-            connection.end()
+            connection.close()
             f.log.error("GAMEID")
             return
         }
 
         if (!verify(playerId,signature)) {
             f.log.error("SIGNATURE")
-            connection.socket.send(JSON.stringify({type:"error",code:"KEK"}))
+            connection.send(JSON.stringify({type:"error",code:"KEK"}))
             return
         }
-
+        
         const game = games.find(gameId) as Demineur ?? games.create(gameId,playerId)
         connections.persist(playerId,gameId,connection)
         game.join(playerId,playerName,color)
@@ -68,7 +68,7 @@ fastify.register(async (f) => {
             publishBlankSingle(game,connection)
         }
 
-        connection.socket.on("message", (rawMessage) => {
+        connection.on("message", (rawMessage) => {
             const message = JSON.parse(rawMessage.toLocaleString())
             if (message.type == "values") {
                 game.setValues(Number(message.long),Number(message.larg),Number(message.bombs))
@@ -102,10 +102,12 @@ fastify.register(async (f) => {
                 game.blank = true
                 publishBlank(game,connections,gameId)
             }
-            console.log(message)
+            console.log("GET MESSAGE ", message)
         })
 
-        connection.socket.on("close", () => {
+        connection.on("close", () => {
+            console.log("CLOSED");
+            
             game.leave(playerId)
             publishPlayerLeave(game,connections,gameId,{id:playerId,nom:playerName,color:color})
             games.clean(gameId)
@@ -126,14 +128,14 @@ fastify.register(async (f) => {
         const gameId = query.gameid
 
         if (!gameId) {
-            connection.end()
+            connection.close()
             f.log.error("GAMEID")
             return
         }
 
         if (!verify(playerId,signature)) {
             f.log.error("SIGNATURE")
-            connection.socket.send(JSON.stringify({type:"error",code:"KEK"}))
+            connection.send(JSON.stringify({type:"error",code:"KEK"}))
             return
         }
 
@@ -141,7 +143,7 @@ fastify.register(async (f) => {
         if (game.play == true && game.joueurs.filter((around,i,joueur) => {return around.id == playerId}).length != 0) {
             publishCreateSingle(game.grilles[playerId],connection)
         } else if (game.play == true || game.blank == true) {
-            connection.socket.send(JSON.stringify({type:"error",code:"KEK"}))
+            connection.send(JSON.stringify({type:"error",code:"KEK"}))
             return
         } else {
             
@@ -152,7 +154,7 @@ fastify.register(async (f) => {
         publishPlayersIn(game,connection)
         var grid = game.grilles[playerId]
         
-        connection.socket.on("message", (rawMessage) => {
+        connection.on("message", (rawMessage) => {
             const message = JSON.parse(rawMessage.toLocaleString())
             if (message.type == "values") {
                 game.setValues(Number(message.long),Number(message.larg),Number(message.bombs))
@@ -166,31 +168,34 @@ fastify.register(async (f) => {
             } else if (message.type == "flag") {
                 var isflag = grid.setFlag(Number(message.x),Number(message.y))
                 publishFlagVS(connection,isflag,grid.isDone(),color,Number(message.x),Number(message.y))
-            } else if (message.type == "clear") {
-                var liste = grid.clearCase(Number(message.x),Number(message.y))
-                publishClearVS(connection,liste)
-                if (grid.isDone() == true) {
-                    publishMessage(game,connections,gameId,`${playerName} a gagné ! Il a nettoyé sa grille plus vite que tout le monde !`)
-                } else if (grid.isLose() == true) {
-                    var still:string[] = game.getStill()
-                    if (still.length == 1) {
-                        publishMessage(game,connections,gameId,`${still[0]} a gagné ! C'est le dernier en vie !`)
-                    } else {
-                        publishMessageVS(connection,`Vous avez fait exploser une bombe ! Vous êtes éliminé, mais la partie est toujours en cours.`)
-                    }
+
+            } else if (message.type == "clear" || message.type == "cleararound") {
+                if (message.type == "clear") {
+                    var liste = grid.clearCase(Number(message.x),Number(message.y))
+                } else {
+                    var liste = grid.clearAroundCase(Number(message.x),Number(message.y))
                 }
-            } else if (message.type == "cleararound") {
-                var liste = grid.clearAroundCase(Number(message.x),Number(message.y))
+                
+                var still:Joueur[] = game.getStill()
+                var first:Joueur = game.getFirst()
+
+                console.log(first)
+                console.log(still)
+
                 publishClearVS(connection,liste)
+
                 if (grid.isDone() == true) {
                     publishMessage(game,connections,gameId,`${playerName} a gagné ! Il a nettoyé sa grille plus vite que tout le monde !`)
                 } else if (grid.isLose() == true) {
-                    var still:string[] = game.getStill()
-                    if (still.length == 1) {
-                        publishMessage(game,connections,gameId,`${still[0]} a gagné ! C'est le dernier en vie !`)
+                    if (still.length == 1 && first.id == still[0].id) {
+                        publishMessage(game,connections,gameId,`${still[0].nom} a gagné ! C'est le dernier en vie, et a eu plus de drapeaux corrects !`)
+                    } else if (still.length == 0) {
+                        publishMessage(game,connections,gameId,`${first.nom} a gagné ! Il a eu plus de drapeaux corrects !`)
                     } else {
-                        publishMessageVS(connection,`Vous avez fait exploser une bombe ! Vous êtes éliminé, mais la partie est toujours en cours.`)
+                        publishMessageVS(connection,`Vous avez fait exploser une bombe ! Vous êtes éliminé, mais vous pouvez toujours gagner au nombre de drapeaux corrects.`)
                     }
+                } else if (still.length == 1 && first.id == playerId) {
+                    publishMessage(game,connections,gameId,`${playerName} a gagné ! Il a eu plus de drapeaux corrects !`)
                 }
             } else if (message.type == "reload") {
                 game.reset()
@@ -205,7 +210,7 @@ fastify.register(async (f) => {
             console.log(message)
         })
 
-        connection.socket.on("close", () => {
+        connection.on("close", () => {
             game.leave(playerId)
             publishPlayerLeave(game,connections,gameId,{id:playerId,nom:playerName,color:color})
             games.clean(gameId)
@@ -215,18 +220,18 @@ fastify.register(async (f) => {
     })
 })
 
-fastify.listen({port:8888,}).catch((err) => { // host:"45.32.147.186"
+fastify.listen({port:8888,host:"localhost"}).catch((err) => { // 
     fastify.log.error(err)
     process.exit(1)
 }).then( () => {
     fastify.log.info("Port 8000 activé")
 })
 
-fastify.get("/", (req,reply) => {
+fastify.get<requestGeneric>("/", (req,reply) => {
     reply.view("/templates/home.ejs")
 })
 
-fastify.get("/login", (req,reply) => {
+fastify.get<requestGeneric>("/login", (req,reply) => {
     reply.view("/templates/login.ejs")
 })
 
@@ -242,7 +247,7 @@ fastify.get<requestGeneric>("/classique/:gameid", (req,reply) => {
     }
 })
 
-fastify.get("/classique", (req,reply) => {
+fastify.get<requestGeneric>("/classique", (req,reply) => {
     reply.redirect(`/classique/`)
 })
 
@@ -258,7 +263,7 @@ fastify.get<requestGeneric>("/versus/:gameid", (req,reply) => {
     }
 })
 
-fastify.get("/versus", (req,reply) => {
+fastify.get<requestGeneric>("/versus", (req,reply) => {
     reply.redirect(`/versus/`)
 })
 

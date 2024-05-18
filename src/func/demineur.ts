@@ -1,18 +1,17 @@
-import { cloneDeep } from "lodash"
-
 export type Joueur = {
     id:string,
     nom:string,
     color:string
 }
 
-class Case {
+export class Case {
     constructor (public bomb:boolean, public flag:boolean, public visible:boolean, public around:number, public start:boolean) {}
 }
 
 export class Demineur {
     public tab:Case[][] = []
     public totalflags:number = 0
+    public rightflags:number = 0
     public play:boolean = false
     public blank:boolean = false
     public joueurs:Joueur[] = []
@@ -28,6 +27,7 @@ export class Demineur {
     reset():void{
         this.tab = []
         this.totalflags = 0
+        this.rightflags = 0
         this.play = false
     }
 
@@ -134,10 +134,16 @@ export class Demineur {
         if (this.tab[xcase][ycase].flag) {
             this.tab[xcase][ycase].flag = false
             this.totalflags --
+            if (this.tab[xcase][ycase].bomb == true) {
+                this.rightflags --
+            }
             return false
         } else {
             this.tab[xcase][ycase].flag = true
             this.totalflags ++
+            if (this.tab[xcase][ycase].bomb == true) {
+                this.rightflags ++
+            }
             return true
         }
     }

@@ -90,6 +90,7 @@ function createSocketVersus(gameid) {
     });
 }
 function setWait(data, versus) {
+    console.log("WAIT WAIT WAIT");
     var leader = data["leader"];
     var long = data["long"];
     var larg = data["larg"];
@@ -128,7 +129,7 @@ function setStart(data) {
     var larg = data["larg"];
     var bombs = data["bombs"];
     var flags = data["flags"];
-    if (long == NaN || larg == NaN || bombs == NaN || long < 5 || larg < 5 || bombs < 5 || long > 100 || larg > 100 || bombs > 3000 || long * larg < bombs) {
+    if (long < 5 || larg < 5 || bombs < 5 || long > 100 || larg > 100 || bombs > 3000 || long * larg < bombs) {
         return false;
     }
     else {

@@ -1,16 +1,16 @@
-import { SocketStream } from "@fastify/websocket";
+import { WebSocket } from "@fastify/websocket";
 import { Player } from "../../types";
 
 export class ConnectionRepository {
     constructor (
-        private connections = new Map<Player["id"], Map<string, SocketStream>>
+        private connections = new Map<Player["id"], Map<string, WebSocket>>
     ) {
 
     }
 
-    persist (playerId:Player["id"],gameId:string,connection:SocketStream) {
+    persist (playerId:Player["id"],gameId:string,connection:WebSocket) {
         if (!this.connections.has(playerId)) {
-            this.connections.set(playerId,new Map<string,SocketStream>())
+            this.connections.set(playerId,new Map<string,WebSocket>())
         }
 
         this.connections.get(playerId)!.set(gameId,connection)
@@ -23,7 +23,7 @@ export class ConnectionRepository {
         }
     }
 
-    find (playerId:Player["id"],gameId:string):SocketStream|undefined {
+    find (playerId:Player["id"],gameId:string):WebSocket|undefined {
         return this.connections.get(playerId)?.get(gameId)
     }
 

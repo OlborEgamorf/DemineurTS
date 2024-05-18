@@ -76,6 +76,7 @@ function createSocketVersus(gameid:string) {
 
 
 function setWait(data:any,versus:boolean) {
+    console.log("WAIT WAIT WAIT");
     var leader:string = data["leader"]
     var long:number = data["long"]
     var larg:number = data["larg"]
@@ -118,7 +119,7 @@ function setStart(data:any):boolean {
     var bombs:number = data["bombs"]
     var flags:number = data["flags"]
       
-    if (long == NaN || larg == NaN || bombs == NaN || long<5 || larg<5 || bombs<5 || long>100 || larg>100 || bombs>3000 || long*larg<bombs) {
+    if (long<5 || larg<5 || bombs<5 || long>100 || larg>100 || bombs>3000 || long*larg<bombs) {
         return false
     } else {
         $("#inputs").css("display","none")
