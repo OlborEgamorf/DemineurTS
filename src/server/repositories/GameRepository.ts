@@ -1,4 +1,5 @@
-import { Demineur, Versus } from "../../func/demineur";
+import { Demineur } from "../../func/demineur";
+import { Versus } from "../../func/versus";
 import { ConnectionRepository } from "./ConnectionRepository";
 
 export class GameRepository {

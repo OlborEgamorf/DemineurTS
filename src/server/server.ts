@@ -5,11 +5,12 @@ import FastifyStatic from '@fastify/static'
 import FastifyWebsocket from '@fastify/websocket'
 import FastifyView from "@fastify/view"
 import { resolve } from 'path'
-import { Demineur, Versus } from '../func/demineur'
+import { Demineur, Joueur } from '../func/demineur'
 import { ConnectionRepository } from './repositories/ConnectionRepository'
 import { GameRepository } from './repositories/GameRepository'
 import { publishBlank, publishBlankSingle, publishClear, publishCreate, publishCreateSingle, publishFlag, publishMessage, publishPlayerJoin, publishPlayerLeave, publishPlayersIn, publishReload, publishValues } from './socket'
 import { publishClearVS, publishCreateVS, publishFlagVS, publishMessageVS } from './socketVS'
+import { Versus } from '../func/versus'
 
 interface IQuerystring {
     username: string;

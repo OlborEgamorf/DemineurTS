@@ -1,5 +1,5 @@
 import { SocketStream } from "@fastify/websocket";
-import { Demineur, Joueur, Versus } from "../func/demineur";
+import { Versus } from "../func/versus";
 import { ConnectionRepository } from "./repositories/ConnectionRepository";
 
 export function publishBlankVersus(versus:Versus,connections:ConnectionRepository,gameId:string) {
@@ -33,5 +33,5 @@ export function publishFlagVS(connection:SocketStream,isflag:boolean,isdone:bool
 }
 
 export function publishMessageVS(connection:SocketStream,mess:string) {
-    connection.socket.send(JSON.stringify({type:"clear",mess:mess}))
+    connection.socket.send(JSON.stringify({type:"message",mess:mess}))
 }

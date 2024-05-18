@@ -1,5 +1,6 @@
-import { Demineur, Joueur, Versus } from "../func/demineur";
 import { WebSocket } from "@fastify/websocket";
+import { Demineur, Joueur } from "../func/demineur";
+import { Versus } from "../func/versus";
 import { ConnectionRepository } from "./repositories/ConnectionRepository";
 
 export function publishBlank(grid:Demineur|Versus,connections:ConnectionRepository,gameId:string) {
