@@ -1,9 +1,10 @@
 "use strict";
-//import ReconnectingWebSocket from "reconnecting-websocket"
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSession = exports.saveSession = void 0;
 var socket = null;
+// Création d'une websocket pour une partie classique
 function createSocket(gameid) {
+    // 
     const session = getSession();
     const searchParams = new URLSearchParams({ ...session, gameid });
     socket = new WebSocket(`${window.location.protocol.replace("http", "ws")}//${window.location.host}/ws?${searchParams.toString()}`);
@@ -90,20 +91,37 @@ function createSocketVersus(gameid) {
     });
 }
 function setWait(data, versus) {
-    console.log("WAIT WAIT WAIT");
     var leader = data["leader"];
     var long = data["long"];
     var larg = data["larg"];
     var bombs = data["bombs"];
+    var max = Math.floor(data["larg"] * data["long"] * 0.7);
     if (leader == localStorage.getItem("playerId")) {
-        $("#inputs").empty();
-        $("#inputs").append(`<span class="span-input">Lignes<br><input type="number" value="${long}" min="5" max="100" id="rows" onfocusout="callValues()"></span>
-        <span class="span-input">Colonnes<br><input type="number" value="${larg}" min="5" max="100" id="cols" onfocusout="callValues()"></span>
-        <span class="span-input">Bombes<br><input type="number" value="${bombs}" min="5" max="3000" id="bombs" onfocusout="callValues()"></span>
+        $("#inputs").append(`<div class="span-input">Lignes : <span id="sp-rows">${long}</span><br><input type="range" value="${long}" min="5" max="30" id="rows" onfocusout="callValues()"></div>
+        <div class="span-input">Colonnes : <span id="sp-cols">${larg}</span><br><input type="range" value="${larg}" min="5" max="30" id="cols" onfocusout="callValues()"></div>
+        <div class="span-input">Bombes : <span id="sp-bombs">${bombs}</span><br><input type="range" value="${bombs}" min="5" max="${max}" id="bombs" onfocusout="callValues()"></div>
         <input type="button" onclick="callStart()" value="Jouer !">`);
+        $("input[type=range]").on("input", function () {
+            var a = $(this).val();
+            if (typeof a === "string") {
+                $("#sp-" + this.id).html(a);
+            }
+            if (this.id == "cols" || this.id == "rows") {
+                var a = $("#cols").val();
+                var b = $("#rows").val();
+                if (typeof a === "string" && typeof b === "string") {
+                    var max = Math.floor(Number.parseInt(a) * Number.parseInt(b) * 0.7);
+                    $("#bombs").attr({ max: max });
+                    var c = $("#bombs").val();
+                    if (typeof c === "string") {
+                        $("#bombs").val(Number.parseInt(c) > max ? max : c);
+                        $("#sp-bombs").html((Number.parseInt(c) > max ? max : c).toString());
+                    }
+                }
+            }
+        });
     }
     else {
-        $("#inputs").empty();
         $("#inputs").append(`<span class="span-input">Lignes<br>${long}</span>
         <span class="span-input">Colonnes<br>${larg}</span>
         <span class="span-input">Bombes<br>${bombs}</span>`);
@@ -134,10 +152,9 @@ function setStart(data) {
     }
     else {
         $("#inputs").css("display", "none");
-        $("#container-count").css("display", "flex");
-        $("#container-count").empty();
-        $("#container-count").append(`<img src='flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}/${bombs}</span>`);
-        $("#container-reload").css("display", "flex");
+        $("#container-board").css("display", "flex");
+        $("#fl").html(`<img src='flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`);
+        $("#bo").html(`<img src='bomb.png' class='flag count'>${bombs}`);
         for (var i = 0; i < long; i++) {
             var tr = $("<tr></tr>");
             for (var j = 0; j < larg; j++) {
@@ -184,7 +201,7 @@ function setCreate(data) {
 }
 function setJoin(data) {
     var joueur = data["joueur"];
-    $("#container-joueurs").append(`<span style="margin-right:10px" id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</span>`);
+    $("#container-joueurs").append(`<div id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`);
 }
 function setLeave(data, versus) {
     var joueur = data["joueur"];
@@ -197,7 +214,7 @@ function setLeave(data, versus) {
 function setAllPlayers(data, id) {
     for (var joueur of data["joueurs"]) {
         if (joueur.id != id) {
-            $("#container-joueurs").append(`<span style="margin-right:10px" id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</span>`);
+            $("#container-joueurs").append(`<div id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`);
         }
     }
 }
@@ -261,8 +278,7 @@ function setFlag(data) {
     }
     if (count != null) {
         count.dataset.count = String(Number(count.dataset.count) + add);
-        $(count).empty();
-        $(count).append(`${count.dataset.count}/${count.dataset.total}`);
+        $(count).html(count.dataset.count);
     }
     return false;
 }
@@ -275,8 +291,9 @@ function callReload() {
 function reload() {
     $("#board").empty();
     $("#inputs").css("display", "flex");
-    $("#container-count").css("display", "none");
-    $("#container-reload").css("display", "none");
+    $("#container-board").css("display", "none");
+    $("#fl").empty();
+    $("#bo").empty();
     closeNav();
 }
 function saveUser() {

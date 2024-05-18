@@ -1,23 +1,41 @@
+html {
+    height: 100%;
+}
+
 body {
-    background-color: #000;
-    margin:20px
+    background-color: #100D0D;
+    margin: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #board {
     background-color: #333;
+    border-radius: 10px;
+    padding: 5px;
 }
 
 
 .flex-container {
-    margin: 80px 10px;
+    display: grid;
+    gap:20px;
+    grid-template-columns: 1fr 2fr 1fr;
 }
 
+.container-infos:first-child {
+    align-items: end;
+}
 
 .revealed {
-    font-family: "Press Start";
+    font-family: "Roboto";
     background-color: #4a4a4a;
     text-align: center;
     border: none;
+    font-size: 20px;
+    font-weight: 700;
+    border-radius: 0;
 }
 
 #reset:hover {
@@ -52,6 +70,7 @@ td {
     max-height: 30px;
     padding: 0;
     user-select: none;
+    border-radius: 5px;
 }
 
 .c1 {
@@ -104,21 +123,41 @@ td {
     background-color: #555555;
 }
 
-.text {
-    color:#FFFFFF;
+input[type=button] {
+    border-radius: 10px;
+    background-color: #5F5F5F;
+    width: 120px;
     display: flex;
-    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    color: white;
+    justify-self: center;
+    align-self: center;
+}
+
+.container-infos {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    color: #FFFFFF;
     font-family: Roboto, Arial, Tahoma, sans-serif;
-    margin-bottom: 20px;
-    width: fit-content;
-}
 
-.game-board {
-    display: flex;
-    justify-content: center;
-    width: fit-content;
-}
+    div {
+        border-radius: 10px;
+        background-color: #5F5F5F;
+        width: 120px;
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        margin: 5px;
+    }
 
+    input {
+        align-self: unset;
+    }
+}
 
 /* The Overlay (background) */
 .overlay {
@@ -214,3 +253,34 @@ td {
     justify-self: center;
     text-align: center;
 }
+
+.container-infos .title-infos, .title-infos {
+    background-color: unset;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    padding: 10px;
+    margin: 5px;
+}
+
+.container-infos .trait, .trait {
+    border: solid white .2px;
+    height: 0;
+    padding: 0;
+    border-radius: 50px;
+    margin: 0 15px 10px 10px;
+}
+
+.container-inputs {
+    color:#FFFFFF;
+    display: flex;
+    justify-content: center;
+    font-family: Roboto, Arial, Tahoma, sans-serif;
+    margin-bottom: 20px;
+    width: fit-content;
+    flex-direction: column;
+    justify-self: center;
+}
+

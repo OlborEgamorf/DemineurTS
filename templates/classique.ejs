@@ -8,12 +8,16 @@
     <link rel="stylesheet" href="CSS.css">
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="inpage.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 </head>
 
 <script>
     window.addEventListener('contextmenu', (event) => {
-    event.preventDefault()
-})
+        event.preventDefault()
+    })
     getName()
     createSocket("<%=gameid%>")
 </script>
@@ -26,34 +30,30 @@
         </div>
     </div>
     <div class="flex-container">
-        <div class="text">
-            Démineur classique <br>
-            Code : <%=gameid%>
+
+        <div class="container-infos" id="container-joueurs">
+            <div class="title-infos">Joueurs</div>
+            <div class="trait"></div>
+
         </div>
 
-        <div class="text" id="inputs">
-        </div>
-
-        <div class="text" id="container-count" style="display: none;">
-            
-        </div>
-
-        <div class="game-board" id="container-board">
-            <br>
+        <div class="game-board" id="container-board" style="display: none;">
             <table id="board">
             </table>
         </div>
 
-        <div class="text" id="container-reload" style="margin-top:10px;display: none;">
-            <input type="button" onclick="callReload()" value="Relancer">
+        <div class="container-inputs" id="inputs">
+            <div class="title-infos">Paramètres</div>
+            <div class="trait"></div>
         </div>
 
-        <div class="text" id="container-joueurs">
-
-        </div>
-
-        <div class="text" id="container-reload" style="margin-top:10px">
-            <a href="/">Menu</a>
+        <div class="container-infos" id="container-count">
+            <div class="title-infos">Partie</div>
+            <div class="trait"></div>
+            <div>Code : <%=gameid%></div>
+            <div id="fl"></div>
+            <div id="bo"></div>
+            <input type="button" onclick="callReload()" value="Relancer" id="container-reload">
         </div>
         
     </div>
