@@ -28,6 +28,13 @@ body {
     align-items: end;
 }
 
+.game-board {
+    height: fit-content;
+    overflow-x: scroll;
+    overflow-y: scroll;
+    max-height: 90vh;
+}
+
 .revealed {
     font-family: "Roboto";
     background-color: #4a4a4a;
@@ -36,11 +43,6 @@ body {
     font-size: 20px;
     font-weight: 700;
     border-radius: 0;
-}
-
-#reset:hover {
-    text-align: center;
-    cursor: pointer;
 }
 
 #size-btns {
@@ -71,6 +73,7 @@ td {
     padding: 0;
     user-select: none;
     border-radius: 5px;
+    transition: background-color .3s, border-radius .3s, border .3s;
 }
 
 .c1 {
@@ -115,7 +118,7 @@ td {
     margin-right: 10px;
 }
 
-.game-cell:hover {
+td:hover {
     background-color: #797575;
 }
 
@@ -144,19 +147,19 @@ input[type=button] {
     color: #FFFFFF;
     font-family: Roboto, Arial, Tahoma, sans-serif;
 
-    div {
-        border-radius: 10px;
-        background-color: #5F5F5F;
-        width: 120px;
-        display: flex;
-        align-items: center;
-        padding: 10px;
-        margin: 5px;
-    }
-
     input {
         align-self: unset;
     }
+}
+
+.infos {
+    border-radius: 10px;
+    background-color: #5F5F5F;
+    width: 120px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 5px;
 }
 
 /* The Overlay (background) */
@@ -284,3 +287,6 @@ input[type=button] {
     justify-self: center;
 }
 
+input {
+    cursor: pointer;
+}

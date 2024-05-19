@@ -1,5 +1,5 @@
 import { WebSocket } from "@fastify/websocket";
-import { Demineur, Joueur } from "../func/demineur";
+import { Demineur, Entry, Joueur } from "../func/demineur";
 import { Versus } from "../func/versus";
 import { ConnectionRepository } from "./repositories/ConnectionRepository";
 
@@ -26,24 +26,21 @@ export function publishValues(grid:Demineur|Versus,connections:ConnectionReposit
 }
 
 export function publishCreate(grid:Demineur,connections:ConnectionRepository,gameId:string) {
-    const visible = grid.getVisible()
-    const around = grid.getAround()
+    const visible = grid.getGrid()
     for (const player of grid.joueurs) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
-            connection.send(JSON.stringify({type:"create",visible:visible,around:around,long:grid.long,larg:grid.larg,flags:grid.totalflags}))
+            connection.send(JSON.stringify({type:"create", visible:visible, long:grid.long, larg:grid.larg, flags:grid.totalflags}))
         }
     }
 }
 
 export function publishCreateSingle(grid:Demineur,connection:WebSocket){
-    const visible = grid.getVisible()
-    const around = grid.getAround()
-    const flags = grid.getFlags()
-    connection.send(JSON.stringify({type:"createall",visible:visible,around:around,long:grid.long,larg:grid.larg,flags:grid.totalflags,bombs:grid.bombs,allflags:flags}))
+    const visible = grid.getGrid()
+    connection.send(JSON.stringify({type:"createall", visible:visible, long:grid.long, larg:grid.larg, flags:grid.totalflags, bombs:grid.bombs}))
 }
 
-export function publishClear(grid:Demineur,connections:ConnectionRepository,gameId:string,liste:[number,number,number,boolean][]) {
+export function publishClear(grid:Demineur,connections:ConnectionRepository,gameId:string,liste:Entry[]) {
     for (const player of grid.joueurs) {
         const connection = connections.find(player.id,gameId)
         if (connection) {

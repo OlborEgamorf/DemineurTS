@@ -97,10 +97,17 @@ function setWait(data, versus) {
     var bombs = data["bombs"];
     var max = Math.floor(data["larg"] * data["long"] * 0.7);
     if (leader == localStorage.getItem("playerId")) {
-        $("#inputs").append(`<div class="span-input">Lignes : <span id="sp-rows">${long}</span><br><input type="range" value="${long}" min="5" max="30" id="rows" onfocusout="callValues()"></div>
-        <div class="span-input">Colonnes : <span id="sp-cols">${larg}</span><br><input type="range" value="${larg}" min="5" max="30" id="cols" onfocusout="callValues()"></div>
-        <div class="span-input">Bombes : <span id="sp-bombs">${bombs}</span><br><input type="range" value="${bombs}" min="5" max="${max}" id="bombs" onfocusout="callValues()"></div>
-        <input type="button" onclick="callStart()" value="Jouer !">`);
+        $("#inputs").html(`
+            <div class="title-infos">Paramètres</div>
+            <div class="trait"></div>
+            <div class="infos">30 / 24 / 156</div>
+            <div class="infos">15 / 15 / 40</div>
+            <div class="infos">25 / 15 / 85</div>
+            <div class="span-input">Lignes : <span id="sp-rows">${long}</span><br><input type="range" value="${long}" min="5" max="30" id="rows"></div>
+            <div class="span-input">Colonnes : <span id="sp-cols">${larg}</span><br><input type="range" value="${larg}" min="5" max="30" id="cols"></div>
+            <div class="span-input">Bombes : <span id="sp-bombs">${bombs}</span><br><input type="range" value="${bombs}" min="5" max="${max}" id="bombs"></div>
+            <input type="button" onclick="callStart()" value="Jouer !">
+        `);
         $("input[type=range]").on("input", function () {
             var a = $(this).val();
             if (typeof a === "string") {
@@ -120,9 +127,15 @@ function setWait(data, versus) {
                 }
             }
         });
+        $("input[type=range]").on("focusout", function () {
+            callValues();
+        });
     }
     else {
-        $("#inputs").append(`<span class="span-input">Lignes<br>${long}</span>
+        $("#inputs").html(`
+        <div class="title-infos">Paramètres</div>
+        <div class="trait"></div>
+        <span class="span-input">Lignes<br>${long}</span>
         <span class="span-input">Colonnes<br>${larg}</span>
         <span class="span-input">Bombes<br>${bombs}</span>`);
         if (versus == true) {
@@ -158,7 +171,7 @@ function setStart(data) {
         for (var i = 0; i < long; i++) {
             var tr = $("<tr></tr>");
             for (var j = 0; j < larg; j++) {
-                $(tr).append(`<td id="${i}_${j}" class="game-cell" data-row='${i}' data-col='${j}' onclick="callCreate(${i},${j})"></td>`);
+                $(tr).append(`<td id="${i}_${j}" data-row='${i}' data-col='${j}' onclick="callCreate(${i},${j})"></td>`);
             }
             $("#board").append(tr);
         }
@@ -168,30 +181,26 @@ function setStart(data) {
 function callCreate(i, j) {
     socket.send(JSON.stringify({ type: "create", xstart: i, ystart: j }));
     var td = $(`#${i}_${j}`);
-    td.removeClass("game-cell");
     td.addClass("revealed");
     td.addClass("c0");
 }
 function setCreate(data) {
     var visible = data["visible"];
-    var around = data["around"];
-    var flags = data["allflags"];
     var long = data["long"];
     var larg = data["larg"];
     for (var x = 0; x < long; x++) {
         for (var y = 0; y < larg; y++) {
             var td = $(`#${x}_${y}`);
             td.attr("onclick", `callClear(this,${x},${y})`);
-            if (visible[x][y] == true) {
-                td.removeClass("game-cell");
+            if (visible[x][y] >= 0) {
                 td.addClass("revealed");
-                td.addClass(`c${around[x][y]}`);
-                if (around[x][y] != 0) {
-                    td.append(`${around[x][y]}`);
+                td.addClass(`c${visible[x][y]}`);
+                if (visible[x][y] != 0) {
+                    td.append(`${visible[x][y]}`);
                 }
             }
             else {
-                if (!!flags && flags[x][y] == true) {
+                if (visible[x][y] == -1) {
                     $(td).append(`<img src='flag${localStorage.getItem("color")}.png' class='flag'>`);
                 }
                 $(td).attr(`oncontextmenu`, `callFlag(this,${x},${y})`);
@@ -201,7 +210,7 @@ function setCreate(data) {
 }
 function setJoin(data) {
     var joueur = data["joueur"];
-    $("#container-joueurs").append(`<div id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`);
+    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`);
 }
 function setLeave(data, versus) {
     var joueur = data["joueur"];
@@ -229,15 +238,13 @@ function callClear(caseG, i, j) {
 function setClear(data) {
     var clear = data["liste"];
     for (var coord of clear) {
-        $(`#${coord[0]}_${coord[1]}`).addClass("revealed");
-        $(`#${coord[0]}_${coord[1]}`).addClass(`c${coord[2]}`);
-        $(`#${coord[0]}_${coord[1]}`).removeClass(`game-cell`);
-        $(`#${coord[0]}_${coord[1]}`).empty();
-        if (coord[3] == true) {
-            $(`#${coord[0]}_${coord[1]}`).append("<img src='bomb.png' class='bomb'>");
+        $(`#${coord.x}_${coord.y}`).addClass("revealed");
+        $(`#${coord.x}_${coord.y}`).addClass(`c${coord.around}`);
+        if (coord.isbomb == true) {
+            $(`#${coord.x}_${coord.y}`).html("<img src='bomb.png' class='bomb'>");
         }
-        else if (coord[2] != 0) {
-            $(`#${coord[0]}_${coord[1]}`).append(`${coord[2]}`);
+        else if (coord.around != 0) {
+            $(`#${coord.x}_${coord.y}`).html(`${coord.around}`);
         }
     }
 }
