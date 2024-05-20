@@ -303,29 +303,40 @@ function reload() {
     $("#bo").empty();
     closeNav();
 }
-function saveUser() {
-    var httpRequest = new XMLHttpRequest();
-    httpRequest.onreadystatechange = function () {
-        if (httpRequest.readyState === 4) {
-            const response = JSON.parse(httpRequest.response);
-            const name = $("#name").val();
-            const color = $("select").val();
-            const player = saveSession({ ...response, name, color });
-            window.location.replace("/");
-        }
-    };
-    httpRequest.open("POST", `/api/players`, true);
-    httpRequest.send();
-}
-function getName() {
+function setUser() {
     const user = getSession();
     if (!user) {
-        window.location.replace("/login");
-        return null;
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.onreadystatechange = function () {
+            if (httpRequest.readyState === 4) {
+                const response = JSON.parse(httpRequest.response);
+                saveSession({ ...response, name: "Joueur sans nom", color: "Rouge" });
+                $("#name").val("Joueur sans nom");
+                $("#Rouge").addClass("active");
+            }
+        };
+        httpRequest.open("POST", `/api/players`, true);
+        httpRequest.send();
     }
     else {
-        return user.name;
+        console.log(user.color);
+        $("#name").val(user.name);
+        $("#" + user.color).addClass("active");
     }
+    $("#name").on("input", function () {
+        var name = $(this).val();
+        if (typeof (name) === "string") {
+            if (name.length == 0) {
+                name = "Joueur sans nom";
+            }
+            localStorage.setItem("name", name);
+        }
+    });
+    $(".flag").on("click", function () {
+        $(".active").removeClass("active");
+        $(this).addClass("active");
+        localStorage.setItem("color", this.id);
+    });
 }
 function saveSession(session) {
     localStorage.setItem("playerId", session.id);

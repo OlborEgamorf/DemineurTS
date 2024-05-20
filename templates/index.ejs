@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Démineur - Home</title>
+    <link rel="stylesheet" href="CSS.css">
+    <script src="inpage.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
+</head>
+
+<body>   
+    
+
+    <div class="grid-index">
+        <h1>Bienvenue !</h1>
+        <div class="card">
+            <div class="img-text">
+                <img src="flagBlanc.png">
+                Partie coopérative
+            </div>
+            <p>Jouez et progressez jusqu’à 8 sur une même grille de démineur.</p>
+            <div class="create">
+                Créer une partie
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="img-text">
+                <img src="bomb.png">
+                Affrontement
+            </div>
+            <p>Affrontez vos amis sur une grille identique, le premier à résoudre gagne !</p>
+            <div class="create">
+                Créer une partie
+            </div>
+        </div>
+        <form class="search">
+            <input type="text" placeholder="Rejoindre une partie avec un code">
+            <input type="submit" value="Jouer !">
+        </form>
+
+        <div class="trait"></div>
+
+        <h2>Votre profil</h2>
+
+        <div class="search">
+            <input id="name" type="text" placeholder="Votre nom de Joueur" value="">
+
+            <div class="flags">
+                <img class="flag" id="Rouge" src="flagRouge.png" alt="">
+                <img class="flag" id="Blanc" src="flagBlanc.png" alt="">
+                <img class="flag" id="Bleu" src="flagBleu.png" alt="">
+                <img class="flag" id="Cyan" src="flagCyan.png" alt="">
+                <img class="flag" id="Jaune" src="flagJaune.png" alt="">
+                <img class="flag" id="Orange" src="flagOrange.png" alt="">
+                <img class="flag" id="Rose" src="flagRose.png" alt="">
+                <img class="flag" id="Turquoise" src="flagTurquoise.png" alt="">
+                <img class="flag" id="Vert" src="flagVert.png" alt="">
+                <img class="flag" id="VertF" src="flagVertF.png" alt="">
+            </div>
+
+            <script>
+                setUser()
+            </script>
+        </div>
+    </div>
+
+</body>
+
+</html>

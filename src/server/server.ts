@@ -225,11 +225,11 @@ fastify.listen({port:8888,host:"localhost"}).catch((err) => { //
     fastify.log.error(err)
     process.exit(1)
 }).then( () => {
-    fastify.log.info("Port 8000 activé")
+    fastify.log.info("Port 8888 activé")
 })
 
 fastify.get<requestGeneric>("/", (req,reply) => {
-    reply.view("/templates/home.ejs")
+    reply.view("/templates/index.ejs")
 })
 
 fastify.get<requestGeneric>("/login", (req,reply) => {
