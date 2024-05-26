@@ -1,4 +1,5 @@
 import { sign, verify } from '../func/crypto'
+import { randomID } from '../func/functions'
 import Fastify, { RequestGenericInterface } from 'fastify'
 import {v4} from "uuid"
 import FastifyStatic from '@fastify/static'
@@ -58,11 +59,13 @@ fastify.register(async (f) => {
             return
         }
         
-        const game = games.find(gameId) as Demineur ?? games.create(gameId,playerId)
+        const game = games.find(gameId) as Demineur 
         connections.persist(playerId,gameId,connection)
+
         game.join(playerId,playerName,color)
         publishPlayerJoin(game,connections,gameId,{id:playerId,nom:playerName,color:color})
         publishPlayersIn(game,connection)
+        
         if (game.play == true) {
             publishCreateSingle(game,connection)
         } else if (game.blank == true) {
@@ -79,7 +82,11 @@ fastify.register(async (f) => {
                 publishCreate(game,connections,gameId)
             } else if (message.type == "flag") {
                 var isflag = game.setFlag(Number(message.x),Number(message.y))
-                publishFlag(game,connections,gameId,isflag,game.isDone(),color,Number(message.x),Number(message.y))
+                var liste = []
+                // if (isflag) {
+                //     var liste = game.clearAfterFlag(Number(message.x),Number(message.y))
+                // }
+                publishFlag(game,connections,gameId,isflag,game.isDone(),color,Number(message.x),Number(message.y),liste)
             } else if (message.type == "clear") {
                 var liste = game.clearCase(Number(message.x),Number(message.y))
                 publishClear(game,connections,gameId,liste)
@@ -111,10 +118,9 @@ fastify.register(async (f) => {
             
             game.leave(playerId)
             publishPlayerLeave(game,connections,gameId,{id:playerId,nom:playerName,color:color})
-            games.clean(gameId)
             connections.remove(playerId,gameId)
+            games.clean(gameId)
         })
-
     })
 })
 
@@ -232,29 +238,35 @@ fastify.get<requestGeneric>("/", (req,reply) => {
     reply.view("/templates/index.ejs")
 })
 
-fastify.get<requestGeneric>("/login", (req,reply) => {
-    reply.view("/templates/login.ejs")
-})
-
-fastify.get<requestGeneric>("/classique/:gameid", (req,reply) => {
-    if (req.params["gameid"] == "") {
-        var gameid = String(Math.floor(Math.random() * 10000))
-        reply.redirect(`/classique/${gameid}`)
-    } else if (isNaN(Number(req.params["gameid"])) == true) {
-        reply.sendFile(req.params["gameid"])
+fastify.get<requestGeneric>("/play/:gameid", {schema: {querystring: { gameid: { type: 'string' } } } }, (req,reply) => {
+    console.log(req.query.gameid)
+    var gameid = req.params["gameid"].toUpperCase()
+    if (gameid.length != 4) {
+        do {
+            gameid = randomID(4)                       
+        } while (games.find(gameid) instanceof Demineur)
+        reply.redirect(`/play/${gameid}`)
     } else {
-        var gameid = req.params["gameid"]
-        reply.view("/templates/classique.ejs",{gameid:gameid})
+        var game = games.create(gameid)
+        if (game.joueurs.length >= 8) {
+            reply.view("/templates/error.ejs",{gameid:gameid})
+        } else {
+            reply.view("/templates/classique.ejs",{gameid:gameid})
+        }
     }
 })
 
-fastify.get<requestGeneric>("/classique", (req,reply) => {
-    reply.redirect(`/classique/`)
+fastify.get<requestGeneric>("/play", (req,reply) => {
+    reply.redirect(`/play/`)
+})
+
+fastify.get<requestGeneric>("/static/:file", (req,reply) => {
+    reply.sendFile(req.params["file"])
 })
 
 fastify.get<requestGeneric>("/versus/:gameid", (req,reply) => {
     if (req.params["gameid"] == "") {
-        var gameid = String(Math.floor(Math.random() * 10000))
+        var gameid = randomID(4)
         reply.redirect(`/versus/${gameid}`)
     } else if (isNaN(Number(req.params["gameid"])) == true) {
         reply.sendFile(req.params["gameid"])
@@ -267,7 +279,6 @@ fastify.get<requestGeneric>("/versus/:gameid", (req,reply) => {
 fastify.get<requestGeneric>("/versus", (req,reply) => {
     reply.redirect(`/versus/`)
 })
-
 
 
 fastify.post<{Querystring: IQuerystring}>("/api/players",(req,reply) => {

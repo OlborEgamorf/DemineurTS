@@ -8,10 +8,15 @@ export class GameRepository {
         private games = new Map<string, Demineur|Versus>
     ) {}
 
-    create(id:string,leader:string):Demineur {
-        var grid = new Demineur(leader)
-        this.games.set(id,grid)
-        return grid
+    create(id:string):Demineur|Versus {
+        var already:Demineur|undefined|Versus = this.find(id)
+        if (typeof(already) === "undefined") {
+            var grid = new Demineur()
+            this.games.set(id,grid)
+            return grid
+        } else {
+            return already
+        }
     }
 
     createVersus(id:string,leader:string):Versus {
@@ -25,10 +30,11 @@ export class GameRepository {
     }
 
     clean(id:string){
-        const game = this.games.get(id)
-        console.log(game?.joueurs.filter(p => this.connections.has(p.id,id)).length)
-        if (game && game.joueurs.filter(p => this.connections.has(p.id,id)).length == 0) {
-            this.games.delete(id)
-        }
+        setTimeout(() => {
+            const game = this.games.get(id)
+            if (game && game.joueurs.filter(p => this.connections.has(p.id,id)).length == 0) {
+                this.games.delete(id)
+            }
+        }, 120000);
     }
 }

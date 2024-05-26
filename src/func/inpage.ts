@@ -131,6 +131,9 @@ function setWait(data:any,versus:boolean):void {
             $("#inputs").append(`<input type="button" onclick="callReady()" value="Prêt !">`)
         }
     }
+
+    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`)
+    $("#bo").html(`<img src='/static/bomb.png' class='flag count'>0`)
 }
 
 function callValues():void {
@@ -159,8 +162,8 @@ function setStart(data:any):boolean {
     } else {
         $("#inputs").css("display","none")
         $("#container-board").css("display","flex")
-        $("#fl").html(`<img src='flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`)
-        $("#bo").html(`<img src='bomb.png' class='flag count'>${bombs}`)
+        $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`)
+        $("#bo").html(`<img src='/static/bomb.png' class='flag count'>${bombs}`)
         
         for (var i=0;i<long;i++) {
             var tr = $("<tr></tr>")
@@ -169,6 +172,7 @@ function setStart(data:any):boolean {
             }
             $("#board").append(tr)
         }
+
         return true
     }
 }
@@ -200,24 +204,26 @@ function setCreate(data:any):void {
                 }                       
             } else {
                 if (visible[x][y] == -1) {
-                    $(td).append(`<img src='flag${localStorage.getItem("color")}.png' class='flag'>`)
+                    $(td).append(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag'>`)
                 }
                 $(td).attr(`oncontextmenu`,`callFlag(this,${x},${y})`)
             }
         }
     }
+
+    startTimer(data["timer"])
 }
 
 function setJoin(data:any):void {
     var joueur = data["joueur"]
-    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`)
+    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`)
 }
 
 function setLeave(data:any,versus:boolean):void {
     var joueur = data["joueur"]
     $(`#${joueur.id}`).remove()
-    console.log(data["leader"] == localStorage.getItem("playerId"),$("#inputs").css("display")=="flex")
-    if (data["leader"] == localStorage.getItem("playerId") == true) {
+
+    if (data["leader"] == localStorage.getItem("playerId")) {
         setWait(data,versus)
     }
 }
@@ -225,19 +231,18 @@ function setLeave(data:any,versus:boolean):void {
 function setAllPlayers(data:any,id:string):void {
     for (var joueur of data["joueurs"]) {
         if (joueur.id != id) {
-            $("#container-joueurs").append(`<div id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`)
+            setJoin({joueur:joueur})
         }
     }
 }
 
 function callClear(caseG:HTMLElement,i:number,j:number):void {
     if ($(caseG).hasClass("revealed") == true) {
-        socket!.send(JSON.stringify({type:"cleararound",x:i,y:j,nom:localStorage.getItem("name")}))
+        socket!.send(JSON.stringify({type:"cleararound",x:i,y:j}))
     } else {
-        socket!.send(JSON.stringify({type:"clear",x:i,y:j,nom:localStorage.getItem("name")}))
+        socket!.send(JSON.stringify({type:"clear",x:i,y:j}))
     }     
 }
-
 
 function setClear(data:any):void {
     var clear:Entry[]=data["liste"]
@@ -246,7 +251,7 @@ function setClear(data:any):void {
         $(`#${coord.x}_${coord.y}`).addClass("revealed")
         $(`#${coord.x}_${coord.y}`).addClass(`c${coord.around}`)
         if (coord.isbomb == true) {
-            $(`#${coord.x}_${coord.y}`).html("<img src='bomb.png' class='bomb'>")
+            $(`#${coord.x}_${coord.y}`).html("<img src='/static/bomb.png' class='bomb'>")
         } else if (coord.around != 0) {
             $(`#${coord.x}_${coord.y}`).html(`${coord.around}`)
         }
@@ -284,7 +289,7 @@ function setFlag(data:any):boolean {
     $(`#${x}_${y}`).empty()
     var count = document.getElementById("counting")
     if (isflag == true) {
-        $(`#${x}_${y}`).append(`<img src='flag${color}.png' class='flag'>`)
+        $(`#${x}_${y}`).append(`<img src='/static/flag${color}.png' class='flag'>`)
         var add:number = 1
     } else if (isflag == false) {
         var add:number = -1 
@@ -317,26 +322,11 @@ function reload(){
     closeNav()
 }
 
-function setUser() {
+function userIndex() {
     const user = getSession()
-    if (!user) {
-        var httpRequest = new XMLHttpRequest()
-        httpRequest.onreadystatechange = function () {
-            if (httpRequest.readyState === 4) {
-                const response=JSON.parse(httpRequest.response)
-                saveSession({...response, name:"Joueur sans nom", color:"Rouge"})
-                $("#name").val("Joueur sans nom")
-                $("#Rouge").addClass("active")
-            }    
-        }
-        httpRequest.open("POST",`/api/players`,true)
-        httpRequest.send()
-    } else {
-        console.log(user.color);
-        
-        $("#name").val(user.name)
-        $("#"+user.color).addClass("active")
-    }
+
+    $("#name").val(user.name)
+    $("#"+user.color).addClass("active")
 
     $("#name").on("input", function() {
         var name = $(this).val()
@@ -344,18 +334,23 @@ function setUser() {
             if (name.length == 0) {
                 name = "Joueur sans nom"
             }
-            localStorage.setItem("name", name)
+            setItem("name", name)
         }
     })
 
     $(".flag").on("click", function() {
         $(".active").removeClass("active")
         $(this).addClass("active")
-        localStorage.setItem("color", this.id)
+        setItem("color", this.id)
     })
-    
 }
 
+function startTimer(start:number) {
+    setInterval(function() {
+        var delta = Date.now() - start; 
+        $("#timer").html(`${String(Math.floor(delta / 60000)).padStart(2, '0')} : ${String(Math.floor(delta / 1000 % 60)).padStart(2, '0')}`);
+    }, 1000);
+}
 
 export type PlayerSession = {
     id:string,
@@ -364,7 +359,12 @@ export type PlayerSession = {
     color:string,
 }
 
-export function saveSession (session:PlayerSession):PlayerSession {
+function setItem(item:string, value:string):void {
+    localStorage.setItem(item, value)
+}
+
+function saveSession (session:PlayerSession):PlayerSession {
+    localStorage.clear()
     localStorage.setItem("playerId",session.id)
     localStorage.setItem("name",session.name)
     localStorage.setItem("signature",session.signature)
@@ -372,16 +372,23 @@ export function saveSession (session:PlayerSession):PlayerSession {
     return session
 }
 
-export function getSession ():PlayerSession|null {
+function getSession():PlayerSession {
     const playerId = localStorage.getItem("playerId")
     const name = localStorage.getItem("name")
     const signature = localStorage.getItem("signature")
     const color = localStorage.getItem("color")
     
     if (!signature || !name || !playerId || !color) {
-        return null
+        var httpRequest = new XMLHttpRequest()
+        httpRequest.open("POST",`/api/players`,false)
+        httpRequest.send()
+
+        const response = JSON.parse(httpRequest.response)
+        const session = {...response, name:"Joueur sans nom", color:"Rouge"}
+        saveSession(session)
+        
+        return session
     } else {
         return {id:playerId,name:name,signature:signature,color:color}
     }
 }
-

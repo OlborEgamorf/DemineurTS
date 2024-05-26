@@ -3,17 +3,17 @@ import { Demineur, Entry, Joueur } from "../func/demineur";
 import { Versus } from "../func/versus";
 import { ConnectionRepository } from "./repositories/ConnectionRepository";
 
-export function publishBlank(grid:Demineur|Versus,connections:ConnectionRepository,gameId:string) {
+export function publishBlank(grid:Demineur,connections:ConnectionRepository,gameId:string) {
     for (const player of grid.joueurs) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
-            connection.send(JSON.stringify({type:"blank",long:grid.long,larg:grid.larg,bombs:grid.bombs,flags:0}))
+            publishBlankSingle(grid, connection)
         }
     }
 }
 
 export function publishBlankSingle(grid:Demineur,connection:WebSocket){
-    connection.send(JSON.stringify({type:"blank",long:grid.long,larg:grid.larg,bombs:grid.bombs,flags:grid.totalflags}))
+    connection.send(JSON.stringify({type:"blank",long:grid.long,larg:grid.larg,bombs:grid.bombs,flags:0}))
 }
 
 export function publishValues(grid:Demineur|Versus,connections:ConnectionRepository,gameId:string) {
@@ -30,14 +30,14 @@ export function publishCreate(grid:Demineur,connections:ConnectionRepository,gam
     for (const player of grid.joueurs) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
-            connection.send(JSON.stringify({type:"create", visible:visible, long:grid.long, larg:grid.larg, flags:grid.totalflags}))
+            connection.send(JSON.stringify({type:"create", visible:visible, long:grid.long, larg:grid.larg, flags:grid.totalflags, timer:grid.timer}))
         }
     }
 }
 
 export function publishCreateSingle(grid:Demineur,connection:WebSocket){
     const visible = grid.getGrid()
-    connection.send(JSON.stringify({type:"createall", visible:visible, long:grid.long, larg:grid.larg, flags:grid.totalflags, bombs:grid.bombs}))
+    connection.send(JSON.stringify({type:"createall", visible:visible, long:grid.long, larg:grid.larg, flags:grid.totalflags, bombs:grid.bombs, timer:grid.timer}))
 }
 
 export function publishClear(grid:Demineur,connections:ConnectionRepository,gameId:string,liste:Entry[]) {
@@ -49,11 +49,12 @@ export function publishClear(grid:Demineur,connections:ConnectionRepository,game
     }
 }
 
-export function publishFlag(grid:Demineur,connections:ConnectionRepository,gameId:string,isflag:boolean,isdone:boolean,color:string,x:number,y:number) {
+export function publishFlag(grid:Demineur,connections:ConnectionRepository,gameId:string,isflag:boolean,isdone:boolean,color:string,x:number,y:number,liste:Entry[]) {
     for (const player of grid.joueurs) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
             connection.send(JSON.stringify({type:"flag",isflag:isflag,isdone:isdone,color:color,x:x,y:y}))
+            connection.send(JSON.stringify({type:"clear",liste:liste}))
         }
     }
 }

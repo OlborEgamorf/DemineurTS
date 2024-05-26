@@ -27,7 +27,7 @@
             </div>
             <p>Jouez et progressez jusqu’à 8 sur une même grille de démineur.</p>
             <div class="create">
-                Créer une partie
+                <a href="/play">Créer une partie</a>
             </div>
         </div>
 
@@ -38,11 +38,11 @@
             </div>
             <p>Affrontez vos amis sur une grille identique, le premier à résoudre gagne !</p>
             <div class="create">
-                Créer une partie
+                <a href="/versus">Créer une partie</a>
             </div>
         </div>
-        <form class="search">
-            <input type="text" placeholder="Rejoindre une partie avec un code">
+        <form class="search" action="/play">
+            <input type="text" name="gameid" id="gameid" placeholder="Rejoindre une partie avec un code">
             <input type="submit" value="Jouer !">
         </form>
 
@@ -67,7 +67,7 @@
             </div>
 
             <script>
-                setUser()
+                userIndex()
             </script>
         </div>
     </div>

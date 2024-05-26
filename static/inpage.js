@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSession = exports.saveSession = void 0;
 var socket = null;
 // Création d'une websocket pour une partie classique
 function createSocket(gameid) {
@@ -142,6 +141,8 @@ function setWait(data, versus) {
             $("#inputs").append(`<input type="button" onclick="callReady()" value="Prêt !">`);
         }
     }
+    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`);
+    $("#bo").html(`<img src='/static/bomb.png' class='flag count'>0`);
 }
 function callValues() {
     var long = Number($("#rows").val());
@@ -166,8 +167,8 @@ function setStart(data) {
     else {
         $("#inputs").css("display", "none");
         $("#container-board").css("display", "flex");
-        $("#fl").html(`<img src='flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`);
-        $("#bo").html(`<img src='bomb.png' class='flag count'>${bombs}`);
+        $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`);
+        $("#bo").html(`<img src='/static/bomb.png' class='flag count'>${bombs}`);
         for (var i = 0; i < long; i++) {
             var tr = $("<tr></tr>");
             for (var j = 0; j < larg; j++) {
@@ -201,38 +202,38 @@ function setCreate(data) {
             }
             else {
                 if (visible[x][y] == -1) {
-                    $(td).append(`<img src='flag${localStorage.getItem("color")}.png' class='flag'>`);
+                    $(td).append(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag'>`);
                 }
                 $(td).attr(`oncontextmenu`, `callFlag(this,${x},${y})`);
             }
         }
     }
+    startTimer(data["timer"]);
 }
 function setJoin(data) {
     var joueur = data["joueur"];
-    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`);
+    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`);
 }
 function setLeave(data, versus) {
     var joueur = data["joueur"];
     $(`#${joueur.id}`).remove();
-    console.log(data["leader"] == localStorage.getItem("playerId"), $("#inputs").css("display") == "flex");
-    if (data["leader"] == localStorage.getItem("playerId") == true) {
+    if (data["leader"] == localStorage.getItem("playerId")) {
         setWait(data, versus);
     }
 }
 function setAllPlayers(data, id) {
     for (var joueur of data["joueurs"]) {
         if (joueur.id != id) {
-            $("#container-joueurs").append(`<div id=${joueur.id}><img src='flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`);
+            setJoin({ joueur: joueur });
         }
     }
 }
 function callClear(caseG, i, j) {
     if ($(caseG).hasClass("revealed") == true) {
-        socket.send(JSON.stringify({ type: "cleararound", x: i, y: j, nom: localStorage.getItem("name") }));
+        socket.send(JSON.stringify({ type: "cleararound", x: i, y: j }));
     }
     else {
-        socket.send(JSON.stringify({ type: "clear", x: i, y: j, nom: localStorage.getItem("name") }));
+        socket.send(JSON.stringify({ type: "clear", x: i, y: j }));
     }
 }
 function setClear(data) {
@@ -241,7 +242,7 @@ function setClear(data) {
         $(`#${coord.x}_${coord.y}`).addClass("revealed");
         $(`#${coord.x}_${coord.y}`).addClass(`c${coord.around}`);
         if (coord.isbomb == true) {
-            $(`#${coord.x}_${coord.y}`).html("<img src='bomb.png' class='bomb'>");
+            $(`#${coord.x}_${coord.y}`).html("<img src='/static/bomb.png' class='bomb'>");
         }
         else if (coord.around != 0) {
             $(`#${coord.x}_${coord.y}`).html(`${coord.around}`);
@@ -274,7 +275,7 @@ function setFlag(data) {
     $(`#${x}_${y}`).empty();
     var count = document.getElementById("counting");
     if (isflag == true) {
-        $(`#${x}_${y}`).append(`<img src='flag${color}.png' class='flag'>`);
+        $(`#${x}_${y}`).append(`<img src='/static/flag${color}.png' class='flag'>`);
         var add = 1;
     }
     else if (isflag == false) {
@@ -303,59 +304,57 @@ function reload() {
     $("#bo").empty();
     closeNav();
 }
-function setUser() {
+function userIndex() {
     const user = getSession();
-    if (!user) {
-        var httpRequest = new XMLHttpRequest();
-        httpRequest.onreadystatechange = function () {
-            if (httpRequest.readyState === 4) {
-                const response = JSON.parse(httpRequest.response);
-                saveSession({ ...response, name: "Joueur sans nom", color: "Rouge" });
-                $("#name").val("Joueur sans nom");
-                $("#Rouge").addClass("active");
-            }
-        };
-        httpRequest.open("POST", `/api/players`, true);
-        httpRequest.send();
-    }
-    else {
-        console.log(user.color);
-        $("#name").val(user.name);
-        $("#" + user.color).addClass("active");
-    }
+    $("#name").val(user.name);
+    $("#" + user.color).addClass("active");
     $("#name").on("input", function () {
         var name = $(this).val();
         if (typeof (name) === "string") {
             if (name.length == 0) {
                 name = "Joueur sans nom";
             }
-            localStorage.setItem("name", name);
+            setItem("name", name);
         }
     });
     $(".flag").on("click", function () {
         $(".active").removeClass("active");
         $(this).addClass("active");
-        localStorage.setItem("color", this.id);
+        setItem("color", this.id);
     });
 }
+function startTimer(start) {
+    setInterval(function () {
+        var delta = Date.now() - start;
+        $("#timer").html(`${String(Math.floor(delta / 60000)).padStart(2, '0')} : ${String(Math.floor(delta / 1000 % 60)).padStart(2, '0')}`);
+    }, 1000);
+}
+function setItem(item, value) {
+    localStorage.setItem(item, value);
+}
 function saveSession(session) {
+    localStorage.clear();
     localStorage.setItem("playerId", session.id);
     localStorage.setItem("name", session.name);
     localStorage.setItem("signature", session.signature);
     localStorage.setItem("color", session.color);
     return session;
 }
-exports.saveSession = saveSession;
 function getSession() {
     const playerId = localStorage.getItem("playerId");
     const name = localStorage.getItem("name");
     const signature = localStorage.getItem("signature");
     const color = localStorage.getItem("color");
     if (!signature || !name || !playerId || !color) {
-        return null;
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.open("POST", `/api/players`, false);
+        httpRequest.send();
+        const response = JSON.parse(httpRequest.response);
+        const session = { ...response, name: "Joueur sans nom", color: "Rouge" };
+        saveSession(session);
+        return session;
     }
     else {
         return { id: playerId, name: name, signature: signature, color: color };
     }
 }
-exports.getSession = getSession;

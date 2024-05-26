@@ -30,9 +30,10 @@ export class Demineur {
     public larg:number = 15
     public bombs:number = 40
     public leader:string = ""
+    public timer:number = 0
 
-    constructor (leader:string) {
-        this.setLeader(leader)
+    constructor () {
+        
     }
 
     reset():void{
@@ -61,6 +62,9 @@ export class Demineur {
 
     join(id:string,nom:string,color:string):void{
         this.joueurs.push({id:id,nom:nom,color:color})
+        if (this.joueurs.length == 1) {           
+            this.setLeader(id)
+        }
     }
 
     leave(id:string):void {
@@ -122,6 +126,7 @@ export class Demineur {
         this.defVisible(xstart,ystart,[])
         this.play = true
         this.blank = false
+        this.timer = Date.now()
         return this 
     }
 

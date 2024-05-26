@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Démineur - Partie classique</title>
-    <link rel="stylesheet" href="CSS.css">
+    <link rel="stylesheet" href="/static/CSS.css" type="text/css">
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script src="inpage.js"></script>
+    <script src="/static/inpage.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
@@ -18,44 +18,46 @@
     window.addEventListener('contextmenu', (event) => {
         event.preventDefault()
     })
-    getName()
     createSocket("<%=gameid%>")
 </script>
 
 <body>   
-    <div id="allover" class="overlay">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <div class="overlay-content">
-
+    <div class="main-game">
+        <div id="allover" class="overlay">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+            <div class="overlay-content">
+    
+            </div>
         </div>
-    </div>
-    <div class="flex-container">
-
-        <div class="container-infos" id="container-joueurs">
-            <div class="title-infos">Joueurs</div>
-            <div class="trait"></div>
-
+        <div class="flex-container">
+    
+            <div class="container-infos" id="container-joueurs">
+                <div class="title-infos">Joueurs</div>
+                <div class="trait"></div>
+    
+            </div>
+    
+            <div class="game-board" id="container-board" style="display: none;">
+                <table id="board">
+                </table>
+            </div>
+    
+            <div class="container-inputs" id="inputs">
+                <div class="title-infos">Paramètres</div>
+                <div class="trait"></div>
+            </div>
+    
+            <div class="container-infos" id="container-count">
+                <div class="title-infos">Partie</div>
+                <div class="trait"></div>
+                <div class="infos">Code : <%=gameid%></div>
+                <div class="infos" id="fl"></div>
+                <div class="infos" id="bo"></div>
+                <div class="infos" id="timer">00 : 00</div>
+                <input type="button" onclick="callReload()" value="Relancer" id="container-reload">
+            </div>
+            
         </div>
-
-        <div class="game-board" id="container-board" style="display: none;">
-            <table id="board">
-            </table>
-        </div>
-
-        <div class="container-inputs" id="inputs">
-            <div class="title-infos">Paramètres</div>
-            <div class="trait"></div>
-        </div>
-
-        <div class="container-infos" id="container-count">
-            <div class="title-infos">Partie</div>
-            <div class="trait"></div>
-            <div class="infos">Code : <%=gameid%></div>
-            <div class="infos" id="fl"></div>
-            <div class="infos" id="bo"></div>
-            <input type="button" onclick="callReload()" value="Relancer" id="container-reload">
-        </div>
-        
     </div>
         
 </body>
