@@ -74,48 +74,53 @@ fastify.register(async (f) => {
 
         connection.on("message", (rawMessage) => {
             const message = JSON.parse(rawMessage.toLocaleString())
-            if (message.type == "values") {
-                game.setValues(Number(message.long),Number(message.larg),Number(message.bombs))
-                publishValues(game,connections,gameId)
-            } else if (message.type == "create") {
-                game.createGrid(Number(message.xstart),Number(message.ystart))
-                publishCreate(game,connections,gameId)
-            } else if (message.type == "flag") {
-                var isflag = game.setFlag(Number(message.x),Number(message.y))
-                var liste = []
-                // if (isflag) {
-                //     var liste = game.clearAfterFlag(Number(message.x),Number(message.y))
-                // }
-                publishFlag(game,connections,gameId,isflag,game.isDone(),color,Number(message.x),Number(message.y),liste)
-            } else if (message.type == "clear") {
-                var liste = game.clearCase(Number(message.x),Number(message.y))
-                publishClear(game,connections,gameId,liste)
-                if (game.isDone() == true) {
-                    publishMessage(game,connections,gameId,"Victoire ! La grille est nettoyée !")
-                } else if (game.isLose() == true) {
-                    publishMessage(game,connections,gameId,`Perdu ! ${playerName} a fait exploser une bombe !`)
-                }
-            } else if (message.type == "cleararound") {
-                var liste = game.clearAroundCase(Number(message.x),Number(message.y))
-                publishClear(game,connections,gameId,liste)
-                if (game.isDone() == true) {
-                    publishMessage(game,connections,gameId,"Victoire ! La grille est nettoyée !")
-                } else if (game.isLose() == true) {
-                    publishMessage(game,connections,gameId,`Perdu ! ${playerName} a fait exploser une bombe !`)
-                }
-            } else if (message.type == "reload") {
-                game.reset()
-                publishReload(game,connections,gameId)
-            } else if (message.type == "start") {
-                game.blank = true
-                publishBlank(game,connections,gameId)
+            switch (message.type) {
+                case "values":
+                    game.setValues(Number(message.long),Number(message.larg),Number(message.bombs))
+                    publishValues(game,connections,gameId)
+                    break
+                case "create":
+                    game.createGrid(Number(message.xstart),Number(message.ystart))
+                    publishCreate(game,connections,gameId)
+                    break
+                case "flag":
+                    var isflag = game.setFlag(Number(message.x),Number(message.y))
+                    publishFlag(game,connections,gameId,isflag,game.isDone(),color,Number(message.x),Number(message.y),[])
+                    break
+                case "clear":
+                    var liste = game.clearCase(Number(message.x),Number(message.y))
+                    publishClear(game,connections,gameId,liste)
+                    if (game.isDone() == true) {
+                        publishMessage(game,connections,gameId,"Victoire ! La grille est nettoyée !")
+                    } else if (game.isLose() == true) {
+                        publishMessage(game,connections,gameId,`Perdu ! ${playerName} a fait exploser une bombe !`)
+                    }
+                    break
+                case "cleararound":
+                    var liste = game.clearAroundCase(Number(message.x),Number(message.y))
+                    publishClear(game,connections,gameId,liste)
+                    if (game.isDone() == true) {
+                        publishMessage(game,connections,gameId,"Victoire ! La grille est nettoyée !")
+                    } else if (game.isLose() == true) {
+                        publishMessage(game,connections,gameId,`Perdu ! ${playerName} a fait exploser une bombe !`)
+                    }
+                    break
+                case "reload":
+                    game.reset()
+                    publishReload(game,connections,gameId)
+                    break
+                case "start":
+                    game.blank = true
+                    publishBlank(game,connections,gameId)
+                    break
+                case "ping":
+                    break
             }
             console.log("GET MESSAGE ", message)
         })
 
         connection.on("close", () => {
             console.log("CLOSED");
-            
             game.leave(playerId)
             publishPlayerLeave(game,connections,gameId,{id:playerId,nom:playerName,color:color})
             connections.remove(playerId,gameId)
@@ -238,26 +243,38 @@ fastify.get<requestGeneric>("/", (req,reply) => {
     reply.view("/templates/index.ejs")
 })
 
-fastify.get<requestGeneric>("/play/:gameid", {schema: {querystring: { gameid: { type: 'string' } } } }, (req,reply) => {
-    console.log(req.query.gameid)
-    var gameid = req.params["gameid"].toUpperCase()
-    if (gameid.length != 4) {
+
+fastify.get<requestGeneric>("/play/:gameid", {schema: {querystring: { gameid: { type: 'string' } } } }, (req, reply) => {
+
+    var gameid = req.params["gameid"].toUpperCase()     // On récupère l'ID de la partie
+    
+    if (gameid) {                                       // Si l'ID est donné, on essaie de rejoindre la partie (elle doit exister)
+        let game = games.find(gameid)
+        if (game) {
+            if (game.joueurs.length >= 8) {             // Maximum 8 joueurs
+                reply.view("/templates/error.ejs",{gameid:gameid})
+            } else {
+                reply.view("/templates/classique.ejs",{gameid:gameid})
+            }
+        } else {
+            reply.view("/templates/error.ejs",{gameid:gameid})
+        }
+
+    } else {                                            // Sinon, on crée la partie
         do {
             gameid = randomID(4)                       
         } while (games.find(gameid) instanceof Demineur)
+        games.create(gameid)
         reply.redirect(`/play/${gameid}`)
-    } else {
-        var game = games.create(gameid)
-        if (game.joueurs.length >= 8) {
-            reply.view("/templates/error.ejs",{gameid:gameid})
-        } else {
-            reply.view("/templates/classique.ejs",{gameid:gameid})
-        }
     }
 })
 
-fastify.get<requestGeneric>("/play", (req,reply) => {
-    reply.redirect(`/play/`)
+fastify.get<requestGeneric>("/play", {schema: {querystring: { gameid: { type: 'string' } } } }, (req,reply) => {
+    if (req.query.gameid) {
+        reply.redirect(`/play/${req.query.gameid}`)
+    } else {
+        reply.redirect(`/play/`)
+    }
 })
 
 fastify.get<requestGeneric>("/static/:file", (req,reply) => {

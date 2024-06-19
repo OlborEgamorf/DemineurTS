@@ -37,6 +37,9 @@ function createSocket(gameid:string):void {
             setMessage(data)
         }
     })
+    setInterval(function () {
+        socket!.send(JSON.stringify({type:"ping"}))
+    }, 30000)
 }
 
 function createSocketVersus(gameid:string):void {
