@@ -27,11 +27,6 @@ body {
 .flex-container {
     display: grid;
     gap:20px;
-    grid-template-columns: 1fr 2fr 1fr;
-}
-
-.container-infos:first-child {
-    align-items: end;
 }
 
 .game-board {
@@ -143,6 +138,7 @@ input[type=button] {
     color: white;
     justify-self: center;
     align-self: center;
+    font-family: Roboto, Arial, Tahoma, sans-serif;
 }
 
 .container-infos {
@@ -427,4 +423,20 @@ a:link {
 a:visited  {
     color:unset;
     text-decoration: none;
+}
+
+#container-joueurs {
+    grid-column: 1;
+}
+
+#container-board {
+    grid-column: 2;
+}
+
+#container-count {
+    grid-column: 3;
+}
+
+#inputs {
+    grid-column: 2;
 }

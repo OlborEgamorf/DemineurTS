@@ -6,7 +6,7 @@ export class Coop extends Game {
 
     reset():void {
         this.play = false
-        this.grid!.reset()
+        this.grid.reset()
     }
 
     createGrid(xstart:number,ystart:number):void {

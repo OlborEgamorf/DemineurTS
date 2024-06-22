@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var socket = null;
+var time = null;
 // Création d'une websocket pour une partie classique
 function createSocket(gameid) {
     // 
@@ -45,6 +46,9 @@ function createSocket(gameid) {
             setMessage(data);
         }
     });
+    setInterval(function () {
+        socket.send(JSON.stringify({ type: "ping" }));
+    }, 30000);
 }
 function createSocketVersus(gameid) {
     const session = getSession();
@@ -95,6 +99,7 @@ function setWait(data, versus) {
     var larg = data["larg"];
     var bombs = data["bombs"];
     var max = Math.floor(data["larg"] * data["long"] * 0.7);
+    console.log(leader, localStorage.getItem("playerId"));
     if (leader == localStorage.getItem("playerId")) {
         $("#inputs").html(`
             <div class="title-infos">Paramètres</div>
@@ -137,7 +142,7 @@ function setWait(data, versus) {
         <span class="span-input">Lignes<br>${long}</span>
         <span class="span-input">Colonnes<br>${larg}</span>
         <span class="span-input">Bombes<br>${bombs}</span>`);
-        if (versus == true) {
+        if (versus) {
             $("#inputs").append(`<input type="button" onclick="callReady()" value="Prêt !">`);
         }
     }
@@ -229,7 +234,7 @@ function setAllPlayers(data, id) {
     }
 }
 function callClear(caseG, i, j) {
-    if ($(caseG).hasClass("revealed") == true) {
+    if ($(caseG).hasClass("revealed")) {
         socket.send(JSON.stringify({ type: "cleararound", x: i, y: j }));
     }
     else {
@@ -241,7 +246,7 @@ function setClear(data) {
     for (var coord of clear) {
         $(`#${coord.x}_${coord.y}`).addClass("revealed");
         $(`#${coord.x}_${coord.y}`).addClass(`c${coord.around}`);
-        if (coord.isbomb == true) {
+        if (coord.isbomb) {
             $(`#${coord.x}_${coord.y}`).html("<img src='/static/bomb.png' class='bomb'>");
         }
         else if (coord.around != 0) {
@@ -258,9 +263,10 @@ function setMessage(data) {
     $("#allover").width("100%");
     $(".overlay-content").empty();
     $(".overlay-content").append(`<span>${mess}</span><a onclick='callReload()'>Rejouer</a><a href='/'>Retour à l'accueil</a>`);
+    stopTimer();
 }
 function callFlag(caseG, i, j) {
-    if ($(caseG).hasClass("revealed") == false) {
+    if (!$(caseG).hasClass("revealed")) {
         socket.send(JSON.stringify({ type: "flag", x: i, y: j }));
     }
 }
@@ -274,11 +280,11 @@ function setFlag(data) {
     }
     $(`#${x}_${y}`).empty();
     var count = document.getElementById("counting");
-    if (isflag == true) {
+    if (isflag) {
         $(`#${x}_${y}`).append(`<img src='/static/flag${color}.png' class='flag'>`);
         var add = 1;
     }
-    else if (isflag == false) {
+    else if (!isflag) {
         var add = -1;
     }
     else {
@@ -300,8 +306,9 @@ function reload() {
     $("#board").empty();
     $("#inputs").css("display", "flex");
     $("#container-board").css("display", "none");
-    $("#fl").empty();
-    $("#bo").empty();
+    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`);
+    $("#bo").html(`<img src='/static/bomb.png' class='flag count'>0`);
+    stopTimer();
     closeNav();
 }
 function userIndex() {
@@ -324,10 +331,16 @@ function userIndex() {
     });
 }
 function startTimer(start) {
-    setInterval(function () {
+    time = setInterval(function () {
         var delta = Date.now() - start;
         $("#timer").html(`${String(Math.floor(delta / 60000)).padStart(2, '0')} : ${String(Math.floor(delta / 1000 % 60)).padStart(2, '0')}`);
     }, 1000);
+}
+function stopTimer() {
+    if (time) {
+        clearInterval(time);
+        $("#timer").html(`00 : 00`);
+    }
 }
 function setItem(item, value) {
     localStorage.setItem(item, value);

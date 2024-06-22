@@ -1,6 +1,7 @@
 import {Entry} from "../func/demineur";
 
 var socket:null|WebSocket = null
+var time:null|NodeJS.Timeout = null
 
 // Création d'une websocket pour une partie classique
 function createSocket(gameid:string):void {
@@ -85,6 +86,8 @@ function setWait(data:any,versus:boolean):void {
     var larg:number = data["larg"]
     var bombs:number = data["bombs"]
     var max:number = Math.floor(data["larg"]*data["long"]*0.7)
+    console.log(leader, localStorage.getItem("playerId"));
+    
     if (leader == localStorage.getItem("playerId")) {
         $("#inputs").html(`
             <div class="title-infos">Paramètres</div>
@@ -130,7 +133,7 @@ function setWait(data:any,versus:boolean):void {
         <span class="span-input">Lignes<br>${long}</span>
         <span class="span-input">Colonnes<br>${larg}</span>
         <span class="span-input">Bombes<br>${bombs}</span>`)
-        if (versus == true) {
+        if (versus) {
             $("#inputs").append(`<input type="button" onclick="callReady()" value="Prêt !">`)
         }
     }
@@ -240,7 +243,7 @@ function setAllPlayers(data:any,id:string):void {
 }
 
 function callClear(caseG:HTMLElement,i:number,j:number):void {
-    if ($(caseG).hasClass("revealed") == true) {
+    if ($(caseG).hasClass("revealed")) {
         socket!.send(JSON.stringify({type:"cleararound",x:i,y:j}))
     } else {
         socket!.send(JSON.stringify({type:"clear",x:i,y:j}))
@@ -253,7 +256,7 @@ function setClear(data:any):void {
     for (var coord of clear) {
         $(`#${coord.x}_${coord.y}`).addClass("revealed")
         $(`#${coord.x}_${coord.y}`).addClass(`c${coord.around}`)
-        if (coord.isbomb == true) {
+        if (coord.isbomb) {
             $(`#${coord.x}_${coord.y}`).html("<img src='/static/bomb.png' class='bomb'>")
         } else if (coord.around != 0) {
             $(`#${coord.x}_${coord.y}`).html(`${coord.around}`)
@@ -270,10 +273,11 @@ function setMessage(data:any):void{
     $("#allover").width("100%")
     $(".overlay-content").empty()
     $(".overlay-content").append(`<span>${mess}</span><a onclick='callReload()'>Rejouer</a><a href='/'>Retour à l'accueil</a>`)
+    stopTimer()
 }
 
 function callFlag(caseG:HTMLElement,i:number,j:number):void {
-    if ($(caseG).hasClass("revealed") == false) {
+    if (!$(caseG).hasClass("revealed")) {
         socket!.send(JSON.stringify({type:"flag",x:i,y:j}))
     }  
 }
@@ -291,10 +295,10 @@ function setFlag(data:any):boolean {
 
     $(`#${x}_${y}`).empty()
     var count = document.getElementById("counting")
-    if (isflag == true) {
+    if (isflag) {
         $(`#${x}_${y}`).append(`<img src='/static/flag${color}.png' class='flag'>`)
         var add:number = 1
-    } else if (isflag == false) {
+    } else if (!isflag) {
         var add:number = -1 
     } else {
         var add:number = 0
@@ -320,8 +324,9 @@ function reload(){
     $("#board").empty()
     $("#inputs").css("display","flex")
     $("#container-board").css("display","none")
-    $("#fl").empty()
-    $("#bo").empty()
+    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`)
+    $("#bo").html(`<img src='/static/bomb.png' class='flag count'>0`)
+    stopTimer()
     closeNav()
 }
 
@@ -349,10 +354,17 @@ function userIndex() {
 }
 
 function startTimer(start:number) {
-    setInterval(function() {
+    time = setInterval(function() {
         var delta = Date.now() - start; 
         $("#timer").html(`${String(Math.floor(delta / 60000)).padStart(2, '0')} : ${String(Math.floor(delta / 1000 % 60)).padStart(2, '0')}`);
     }, 1000);
+}
+
+function stopTimer() {
+    if (time) {
+        clearInterval(time)
+        $("#timer").html(`00 : 00`);
+    }
 }
 
 export type PlayerSession = {
