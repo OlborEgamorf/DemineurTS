@@ -1,47 +1,45 @@
 import { WebSocket } from "@fastify/websocket";
-import { Demineur, Entry, Joueur } from "../func/demineur";
-import { Versus } from "../func/versus";
+import { Game, Infos, Joueur } from "../func/game";
 import { ConnectionRepository } from "./repositories/ConnectionRepository";
+import { Entry } from "../func/demineur";
 
-export function publishBlank(grid:Demineur,connections:ConnectionRepository,gameId:string) {
-    for (const player of grid.joueurs) {
+export function publishBlank(game:Game, infos:Infos, connections:ConnectionRepository, gameId:string) {
+    for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
-            publishBlankSingle(grid, connection)
+            publishBlankSingle(infos, connection)
         }
     }
 }
 
-export function publishBlankSingle(grid:Demineur,connection:WebSocket){
-    connection.send(JSON.stringify({type:"blank",long:grid.long,larg:grid.larg,bombs:grid.bombs,flags:0}))
+export function publishBlankSingle(infos:Infos,connection:WebSocket){
+    connection.send(JSON.stringify({type:"blank", ...infos}))
 }
 
-export function publishValues(grid:Demineur|Versus,connections:ConnectionRepository,gameId:string) {
-    for (const player of grid.joueurs) {
+export function publishValues(game:Game, infos:Infos, connections:ConnectionRepository,gameId:string) {
+    for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
-        if (connection && player.id != grid.leader) {
-            connection.send(JSON.stringify({type:"values",long:grid.long,larg:grid.larg,bombs:grid.bombs,leader:grid.leader}))
+        if (connection && player.id != game.getLeader()) {
+            connection.send(JSON.stringify({type:"values", ...infos}))
         }
     }
 }
 
-export function publishCreate(grid:Demineur,connections:ConnectionRepository,gameId:string) {
-    const visible = grid.getGrid()
-    for (const player of grid.joueurs) {
+export function publishCreate(game:Game, visible:Number[][], infos:Infos, connections:ConnectionRepository,gameId:string) {
+    for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
-            connection.send(JSON.stringify({type:"create", visible:visible, long:grid.long, larg:grid.larg, flags:grid.totalflags, timer:grid.timer}))
+            connection.send(JSON.stringify({type:"create", visible:visible, ...infos}))
         }
     }
 }
 
-export function publishCreateSingle(grid:Demineur,connection:WebSocket){
-    const visible = grid.getGrid()
-    connection.send(JSON.stringify({type:"createall", visible:visible, long:grid.long, larg:grid.larg, flags:grid.totalflags, bombs:grid.bombs, timer:grid.timer}))
+export function publishCreateSingle(visible:Number[][], infos:Infos, connection:WebSocket){
+    connection.send(JSON.stringify({type:"createall", visible:visible, ...infos}))
 }
 
-export function publishClear(grid:Demineur,connections:ConnectionRepository,gameId:string,liste:Entry[]) {
-    for (const player of grid.joueurs) {
+export function publishClear(game:Game, connections:ConnectionRepository, gameId:string, liste:Entry[]) {
+    for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
             connection.send(JSON.stringify({type:"clear",liste:liste}))
@@ -49,18 +47,17 @@ export function publishClear(grid:Demineur,connections:ConnectionRepository,game
     }
 }
 
-export function publishFlag(grid:Demineur,connections:ConnectionRepository,gameId:string,isflag:boolean,isdone:boolean,color:string,x:number,y:number,liste:Entry[]) {
-    for (const player of grid.joueurs) {
+export function publishFlag(game:Game, connections:ConnectionRepository, gameId:string, isflag:boolean, color:string, x:number, y:number) {
+    for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
-            connection.send(JSON.stringify({type:"flag",isflag:isflag,isdone:isdone,color:color,x:x,y:y}))
-            connection.send(JSON.stringify({type:"clear",liste:liste}))
+            connection.send(JSON.stringify({type:"flag",isflag:isflag,color:color,x:x,y:y}))
         }
     }
 }
 
-export function publishReload(grid:Demineur|Versus,connections:ConnectionRepository,gameId:string) {
-    for (const player of grid.joueurs) {
+export function publishReload(game:Game, connections:ConnectionRepository, gameId:string) {
+    for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
             connection.send(JSON.stringify({type:"reload"}))
@@ -68,8 +65,8 @@ export function publishReload(grid:Demineur|Versus,connections:ConnectionReposit
     }
 }
 
-export function publishMessage(grid:Demineur|Versus,connections:ConnectionRepository,gameId:string,mess:string) {
-    for (const player of grid.joueurs) {
+export function publishMessage(game:Game, connections:ConnectionRepository, gameId:string, mess:string) {
+    for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
             connection.send(JSON.stringify({type:"message",mess:mess}))
@@ -77,8 +74,8 @@ export function publishMessage(grid:Demineur|Versus,connections:ConnectionReposi
     }
 }
 
-export function publishPlayerJoin(grid:Demineur|Versus,connections:ConnectionRepository,gameId:string,joueur:Joueur) {
-    for (const player of grid.joueurs) {
+export function publishPlayerJoin(game:Game, connections:ConnectionRepository, gameId:string, joueur:Joueur) {
+    for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
             connection.send(JSON.stringify({type:"join",joueur:joueur}))
@@ -86,18 +83,18 @@ export function publishPlayerJoin(grid:Demineur|Versus,connections:ConnectionRep
     }
 }
 
-export function publishPlayerLeave(grid:Demineur|Versus,connections:ConnectionRepository,gameId:string,joueur:Joueur) {
-    for (const player of grid.joueurs) {
+export function publishPlayerLeave(game:Game, connections:ConnectionRepository, gameId:string, joueur:Joueur) {
+    for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
-            connection.send(JSON.stringify({type:"leave",joueur:joueur,long:grid.long,larg:grid.larg,bombs:grid.bombs,leader:grid.leader}))
+            connection.send(JSON.stringify({type:"leave",joueur:joueur,leader:game.getLeader()}))
         }
     }
 }
 
-export function publishPlayersIn(grid:Demineur|Versus,connection:WebSocket) {
-    connection.send(JSON.stringify({type:"allplayers",joueurs:grid.joueurs,leader:grid.leader}))
-    if (grid.play == false) {
-        connection.send(JSON.stringify({type:"waiting",long:grid.long,larg:grid.larg,bombs:grid.bombs,leader:grid.leader}))
+export function publishPlayersIn(game:Game, infos:Infos, connection:WebSocket) {
+    connection.send(JSON.stringify({type:"allplayers",joueurs:game.getJoueurs(),leader:game.getLeader()}))
+    if (!game.isPlay()) {
+        connection.send(JSON.stringify({type:"waiting", ...infos}))
     }
 }

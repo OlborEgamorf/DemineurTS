@@ -1,17 +1,18 @@
-import { sign, verify } from '../func/crypto'
-import { randomID } from '../func/functions'
-import Fastify, { RequestGenericInterface } from 'fastify'
-import {v4} from "uuid"
 import FastifyStatic from '@fastify/static'
-import FastifyWebsocket from '@fastify/websocket'
 import FastifyView from "@fastify/view"
+import FastifyWebsocket from '@fastify/websocket'
+import Fastify, { RequestGenericInterface } from 'fastify'
 import { resolve } from 'path'
-import { Demineur, Joueur } from '../func/demineur'
+import { v4 } from "uuid"
+import { Coop } from '../func/coop'
+import { sign, verify } from '../func/crypto'
+import { Demineur } from '../func/demineur'
+import { randomID } from '../func/functions'
+import { Versus } from '../func/versus'
 import { ConnectionRepository } from './repositories/ConnectionRepository'
 import { GameRepository } from './repositories/GameRepository'
 import { publishBlank, publishBlankSingle, publishClear, publishCreate, publishCreateSingle, publishFlag, publishMessage, publishPlayerJoin, publishPlayerLeave, publishPlayersIn, publishReload, publishValues } from './socket'
 import { publishClearVS, publishCreateVS, publishFlagVS, publishMessageVS } from './socketVS'
-import { Versus } from '../func/versus'
 
 interface IQuerystring {
     username: string;
@@ -59,49 +60,44 @@ fastify.register(async (f) => {
             return
         }
         
-        const game = games.find(gameId) as Demineur 
+        const game = games.find(gameId) as Coop
+        let grid = game.getGrid()
+
         connections.persist(playerId,gameId,connection)
+
+        if (game.isPlay()) {
+            publishCreateSingle(grid.getVisible(), game.getAllInfos(grid), connection)
+        } else if (game.isBlank()) {
+            publishBlankSingle(game.getAllInfos(grid),connection)
+        }
 
         game.join(playerId,playerName,color)
         publishPlayerJoin(game,connections,gameId,{id:playerId,nom:playerName,color:color})
-        publishPlayersIn(game,connection)
+        publishPlayersIn(game, game.getAllInfos(grid), connection)
         
-        if (game.play == true) {
-            publishCreateSingle(game,connection)
-        } else if (game.blank == true) {
-            publishBlankSingle(game,connection)
-        }
-
         connection.on("message", (rawMessage) => {
             const message = JSON.parse(rawMessage.toLocaleString())
             switch (message.type) {
                 case "values":
                     game.setValues(Number(message.long),Number(message.larg),Number(message.bombs))
-                    publishValues(game,connections,gameId)
+                    publishValues(game, game.getAllInfos(grid), connections,gameId)
                     break
                 case "create":
                     game.createGrid(Number(message.xstart),Number(message.ystart))
-                    publishCreate(game,connections,gameId)
+                    grid = game.getGrid()
+                    publishCreate(game,grid.getVisible(),game.getAllInfos(grid),connections,gameId)
                     break
                 case "flag":
-                    var isflag = game.setFlag(Number(message.x),Number(message.y))
-                    publishFlag(game,connections,gameId,isflag,game.isDone(),color,Number(message.x),Number(message.y),[])
+                    let isflag = grid.setFlag(Number(message.x),Number(message.y))
+                    publishFlag(game,connections,gameId,isflag,color,Number(message.x),Number(message.y))
                     break
                 case "clear":
-                    var liste = game.clearCase(Number(message.x),Number(message.y))
+                case "cleararound":                    
+                    var liste = message.type == "clear" ? grid.clearCase(Number(message.x),Number(message.y)) : grid.clearAroundCase(Number(message.x),Number(message.y))
                     publishClear(game,connections,gameId,liste)
-                    if (game.isDone() == true) {
+                    if (game.isDone()) {
                         publishMessage(game,connections,gameId,"Victoire ! La grille est nettoyée !")
-                    } else if (game.isLose() == true) {
-                        publishMessage(game,connections,gameId,`Perdu ! ${playerName} a fait exploser une bombe !`)
-                    }
-                    break
-                case "cleararound":
-                    var liste = game.clearAroundCase(Number(message.x),Number(message.y))
-                    publishClear(game,connections,gameId,liste)
-                    if (game.isDone() == true) {
-                        publishMessage(game,connections,gameId,"Victoire ! La grille est nettoyée !")
-                    } else if (game.isLose() == true) {
+                    } else if (game.isLose()) {
                         publishMessage(game,connections,gameId,`Perdu ! ${playerName} a fait exploser une bombe !`)
                     }
                     break
@@ -110,8 +106,8 @@ fastify.register(async (f) => {
                     publishReload(game,connections,gameId)
                     break
                 case "start":
-                    game.blank = true
-                    publishBlank(game,connections,gameId)
+                    game.setBlank(true)
+                    publishBlank(game,game.getAllInfos(grid),connections,gameId)
                     break
                 case "ping":
                     break
@@ -239,10 +235,13 @@ fastify.listen({port:8888,host:"localhost"}).catch((err) => { //
     fastify.log.info("Port 8888 activé")
 })
 
+fastify.get<requestGeneric>("/static/:file", (req,reply) => {
+    reply.sendFile(req.params["file"])
+})
+
 fastify.get<requestGeneric>("/", (req,reply) => {
     reply.view("/templates/index.ejs")
 })
-
 
 fastify.get<requestGeneric>("/play/:gameid", {schema: {querystring: { gameid: { type: 'string' } } } }, (req, reply) => {
 
@@ -251,7 +250,7 @@ fastify.get<requestGeneric>("/play/:gameid", {schema: {querystring: { gameid: { 
     if (gameid) {                                       // Si l'ID est donné, on essaie de rejoindre la partie (elle doit exister)
         let game = games.find(gameid)
         if (game) {
-            if (game.joueurs.length >= 8) {             // Maximum 8 joueurs
+            if (game.getJoueurs().length >= 8) {             // Maximum 8 joueurs
                 reply.view("/templates/error.ejs",{gameid:gameid})
             } else {
                 reply.view("/templates/classique.ejs",{gameid:gameid})
@@ -263,8 +262,8 @@ fastify.get<requestGeneric>("/play/:gameid", {schema: {querystring: { gameid: { 
     } else {                                            // Sinon, on crée la partie
         do {
             gameid = randomID(4)                       
-        } while (games.find(gameid) instanceof Demineur)
-        games.create(gameid)
+        } while (games.find(gameid) instanceof Coop)
+        games.create(gameid, false)
         reply.redirect(`/play/${gameid}`)
     }
 })
@@ -277,9 +276,6 @@ fastify.get<requestGeneric>("/play", {schema: {querystring: { gameid: { type: 's
     }
 })
 
-fastify.get<requestGeneric>("/static/:file", (req,reply) => {
-    reply.sendFile(req.params["file"])
-})
 
 fastify.get<requestGeneric>("/versus/:gameid", (req,reply) => {
     if (req.params["gameid"] == "") {
@@ -307,15 +303,3 @@ fastify.post<{Querystring: IQuerystring}>("/api/players",(req,reply) => {
         pass:verify(playerID,signature)
     })
 })
-
-
-/** 
- * Pour plus tard
-fastify.addHook("preHandler", function (request, reply, done) {
-    reply.locals = {
-      text: getTextFromRequest(request), // it will be available in all views
-    };
-  
-    done();
-  });
-*/

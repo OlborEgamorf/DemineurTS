@@ -1,19 +1,19 @@
-import { Demineur } from "../../func/demineur";
+import { Coop } from "../../func/coop";
 import { Versus } from "../../func/versus";
 import { ConnectionRepository } from "./ConnectionRepository";
 
 export class GameRepository {
     constructor (
         private connections:ConnectionRepository,
-        private games = new Map<string, Demineur|Versus>
+        private games = new Map<string, Coop|Versus>
     ) {}
 
-    create(id:string):Demineur|Versus {
-        var already:Demineur|undefined|Versus = this.find(id)
+    create(id:string, versus:boolean):Coop|Versus {
+        var already:Coop|Versus|undefined = this.find(id)
         if (typeof(already) === "undefined") {
-            var grid = new Demineur()
-            this.games.set(id,grid)
-            return grid
+            var game = versus ? new Versus() : new Coop() 
+            this.games.set(id, game)
+            return game
         } else {
             return already
         }
@@ -25,14 +25,14 @@ export class GameRepository {
         return grid
     }
 
-    find(id:string):Demineur|undefined|Versus {
+    find(id:string):Coop|Versus|undefined {
         return this.games.get(id)
     }
 
     clean(id:string){
         setTimeout(() => {
             const game = this.games.get(id)
-            if (game && game.joueurs.filter(p => this.connections.has(p.id,id)).length == 0) {
+            if (game && game.getJoueurs().filter(p => this.connections.has(p.id,id)).length == 0) {
                 this.games.delete(id)
             }
         }, 120000);

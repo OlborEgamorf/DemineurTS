@@ -1,9 +1,3 @@
-export type Joueur = {
-    id:string,
-    nom:string,
-    color:string
-}
-
 export type Entry = {
     x:number,
     y:number,
@@ -20,31 +14,29 @@ export class Case {
 }
 
 export class Demineur {
-    public tab:Case[][] = []
-    public totalflags:number = 0
-    public rightflags:number = 0
-    public play:boolean = false
-    public blank:boolean = false
-    public joueurs:Joueur[] = []
-    public long:number = 15
-    public larg:number = 15
-    public bombs:number = 40
-    public leader:string = ""
-    public timer:number = 0
+    private tab:Case[][] = []
+    private totalflags:number = 0
+    private lose:boolean = false
+    private notvisible:number
+    private long:number
+    private larg:number
+    private bombs:number
 
-    constructor () {
-        
+    constructor (long:number, larg:number, bombs:number) {
+        this.long = long
+        this.larg = larg
+        this.bombs = bombs
+        this.notvisible = long * larg
     }
 
     reset():void{
         this.tab = []
         this.totalflags = 0
-        this.rightflags = 0
-        this.play = false
     }
 
-    getGrid():Number[][] {
+    getVisible():Number[][] {
         var visible:Number[][] = []
+
         for (var i=0;i<this.long;i++) {
             visible.push([])
             for (var j=0;j<this.larg;j++) {
@@ -60,32 +52,6 @@ export class Demineur {
         return visible
     }
 
-    join(id:string,nom:string,color:string):void{
-        this.joueurs.push({id:id,nom:nom,color:color})
-        if (this.joueurs.length == 1) {           
-            this.setLeader(id)
-        }
-    }
-
-    leave(id:string):void {
-        this.joueurs = this.joueurs.filter((around,i,joueur) => {return around.id != id})
-        if (id == this.leader && this.joueurs.length != 0) {
-            this.setLeader(this.joueurs[0].id)
-        }
-    }
-
-    setLeader(id:string):void {
-        this.leader = id
-    }
-    
-    setValues(long:number,larg:number,bombs:number):void{
-        if (this.play == false) {
-            this.long=long
-            this.larg=larg
-            this.bombs=bombs
-        }
-    }
-
     around(xstart:number, ystart:number, func:FuncCase):void {
         for (let x=xstart-1;x<xstart+2;x++) {
             for (let y=ystart-1;y<ystart+2;y++) {
@@ -96,10 +62,8 @@ export class Demineur {
         }
     }
 
-    createGrid(xstart:number,ystart:number):Demineur {
-        if (this.play == true) {
-            return this
-        } 
+    createGrid(start:[number, number][]):Case[][] {
+
         for (let i=0;i<this.long;i++) {
             this.tab.push([])
             for (let j=0;j<this.larg;j++) {
@@ -108,7 +72,9 @@ export class Demineur {
             }
         }
 
-        this.around(xstart, ystart, (c:Case) => {c.start = true})
+        start.forEach(element => {
+            this.around(element[0], element[1], (c:Case) => {c.start = true})
+        });
     
         for (let k=0;k<this.bombs;k++) {
             var newX:number = Math.floor(Math.random()*this.long)
@@ -119,45 +85,28 @@ export class Demineur {
                 this.tab[newX][newY].bomb = true
                 this.around(newX, newY, (c:Case) => {c.around++})
             }
-        }
-
-        // this.solve(xstart, ystart)
+        }       
         
-        this.defVisible(xstart,ystart,[])
-        this.play = true
-        this.blank = false
-        this.timer = Date.now()
-        return this 
+        return this.tab 
     }
 
     setFlag(xcase:number,ycase:number):boolean{
         if (this.tab[xcase][ycase].flag) {
             this.tab[xcase][ycase].flag = false
             this.totalflags --
-            if (this.tab[xcase][ycase].bomb == true) {
-                this.rightflags --
-            }
             return false
         } else {
             this.tab[xcase][ycase].flag = true
             this.totalflags ++
-            if (this.tab[xcase][ycase].bomb == true) {
-                this.rightflags ++
-            }
             return true
         }
     }
 
     clearCase(xcase:number,ycase:number):Entry[] {
-        if (this.tab[xcase][ycase].flag == true) {
+        if (this.tab[xcase][ycase].flag || this.tab[xcase][ycase].visible) {
             return []
-        } else if (this.tab[xcase][ycase].bomb == true) {
-            this.tab[xcase][ycase].visible = true
-            this.play = false
-            return [{x:xcase, y:ycase, around:8, isbomb:true}]
-        } else {
-            return this.defVisible(xcase,ycase,[])
         }
+        return this.defVisible(xcase,ycase,[])
     }
 
     clearAroundCase(xcase:number,ycase:number):Entry[] {
@@ -168,22 +117,19 @@ export class Demineur {
             for (var checkLarg=ycase-1;checkLarg<ycase+2;checkLarg++) {
                 if (checkLong>=0 && checkLarg>=0 && checkLong < this.long && checkLarg < this.larg) {
                     listeAround.push([checkLong,checkLarg,this.tab[checkLong][checkLarg]])
-                    if (this.tab[checkLong][checkLarg].flag == true) {
+                    if (this.tab[checkLong][checkLarg].flag) {
                         nbFlags ++
                     }
                 }
             }
         } 
     
-        if (nbFlags == this.tab[xcase][ycase].around) {
-            console.log("oui");
-            
+        if (nbFlags == this.tab[xcase][ycase].around) {            
             var i:number = 0
             var liste:Entry[] = []
             for (var i=0;i<listeAround.length;i++) {
-                if (listeAround[i][2].bomb == true && listeAround[i][2].flag == true) {} else {
+                if (listeAround[i][2].bomb && listeAround[i][2].flag) {} else {
                     liste = this.defVisible(listeAround[i][0],listeAround[i][1],liste)
-                    console.log("12",liste);
                 }
             }
             return liste
@@ -192,19 +138,19 @@ export class Demineur {
         }
     }
 
-    defVisible(xcase:number,ycase:number,liste:[number,number,number,boolean][]):[number,number,number,boolean][] {
-        if (this.tab[xcase][ycase].visible == false) {
+    defVisible(xcase:number,ycase:number,liste:Entry[]):Entry[] {
+        if (!this.tab[xcase][ycase].visible) {
             this.tab[xcase][ycase].visible = true
+            this.notvisible --
+            if (this.tab[xcase][ycase].bomb) {
+                this.lose = true
+            }
             liste.push({x:xcase, y:ycase, around:this.tab[xcase][ycase].around, isbomb:this.tab[xcase][ycase].bomb})
             if (this.tab[xcase][ycase].around == 0) {
                 for (let x=xcase-1;x<xcase+2;x++) {
                     for (let y=ycase-1;y<ycase+2;y++) {
                         if (x>=0 && y>=0 && x < this.long && y < this.larg) {
-                            // liste.push({x:x, y:y, around:this.tab[x][y].around, isbomb:this.tab[x][y].bomb})
-                            if (this.tab[x][y].bomb == true) {
-                                this.play = false
-                            }
-                            liste=this.defVisible(x,y,liste)
+                            liste = this.defVisible(x,y,liste)
                         }
                     }
                 } 
@@ -214,31 +160,18 @@ export class Demineur {
     }
 
     isDone():boolean{
-        var sum:number = 0
-        for (var ligne of this.tab) {
-            for (var caseG of ligne) {
-                if (caseG.visible == false) {
-                    sum+=1
-                }
-            }
-        }
-        if (sum == this.bombs) {
-            this.play = false
-            return true
-        } else {
-            return false
-        }
+        return this.notvisible == this.bombs
     }
 
     isLose():boolean{
-        var lose:boolean=false
-        for (var ligne of this.tab) {
-            for (var caseG of ligne) {
-                if (caseG.visible == true && caseG.bomb == true) {
-                    lose=true
-                }
-            }
-        }
-        return lose
+        return this.lose
+    }
+
+    getTotalFlags():number {
+        return this.totalflags
+    }
+
+    getNotVisible():number {
+        return this.notvisible
     }
 }
