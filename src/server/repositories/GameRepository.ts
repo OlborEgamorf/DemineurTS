@@ -19,12 +19,6 @@ export class GameRepository {
         }
     }
 
-    createVersus(id:string,leader:string):Versus {
-        var grid = new Versus(leader)
-        this.games.set(id,grid)
-        return grid
-    }
-
     find(id:string):Coop|Versus|undefined {
         return this.games.get(id)
     }

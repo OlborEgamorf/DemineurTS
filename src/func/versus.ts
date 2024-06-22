@@ -1,36 +1,33 @@
-import { Joueur, Demineur, Case } from "./demineur"
+import { Game, Joueur } from "./game"
+import { Demineur, Case } from "./demineur"
 import { cloneDeep } from "lodash"
 
-export class Versus {
-    public grilles:{[key:string]:Demineur} = {}
-    public ready:{[key:string]:boolean} = {}
-    public start:{[key:string]:[number,number]} = {}
-    public joueurs:Joueur[] = []
-    public long:number = 15
-    public larg:number = 15
-    public bombs:number = 40
-    public leader:string = ""
-    public play:boolean = false
-    public blank:boolean = false
-
-    constructor (leader:string) {
-        this.setLeader(leader)
-    }
+export class Versus extends Game {
+    private grilles:{[key:string]:Demineur} = {}
+    private ready:{[key:string]:boolean} = {}
+    private start:{[key:string]:[number,number]} = {}
+    private playing:{[key:string]:boolean} = {}
+    private count:number = 0
 
     reset(){
         for (var joueur of this.joueurs) {
             this.grilles[joueur.id].reset()
             this.ready[joueur.id] = false
-            this.start[joueur.id] = [-1,-1]
+            this.start[joueur.id] = [-1, -1]
         }
         this.play = false
     }
 
+    join(id:string,nom:string,color:string):void{
+        super.join(id, nom, color)
+        this.ready[id] = false
+        this.start[id] = [-1,-1]
+    }
+
     addStart(id:string,xstart:number,ystart:number) {
         if (this.start[id].every((value, index) => value === [-1,-1][index])) {
-            this.start[id]=[xstart,ystart]
+            this.start[id] = [xstart, ystart]
         }
-        
     }
 
     isStart():boolean{
@@ -44,125 +41,85 @@ export class Versus {
     }
 
     setReady(id:string){
-        if (this.ready[id] == false) {
-            this.ready[id] = true
-        } else {
-            this.ready[id] = false
-        }
+        this.ready[id] = !this.ready[id]
     }
 
     isReady():boolean{
         var ready = true
         for (var joueur of this.joueurs) {
-            if (this.ready[joueur.id] == false) {
+            if (!this.ready[joueur.id]) {
                 ready = false
             }
         }
         return ready
     }
 
-    join(id:string,nom:string,color:string):void{
-        this.joueurs.push({id:id,nom:nom,color:color})
-        this.grilles[id]=new Demineur(id)
-        this.ready[id]=false
-        this.start[id]=[-1,-1]
-    }
-
-    leave(id:string):void {
-        this.joueurs = this.joueurs.filter((around,i,joueur) => {return around.id != id})
-        if (id == this.leader && this.joueurs.length != 0) {
-            this.setLeader(this.joueurs[0].id)
+    isWin(playerId:string):boolean {
+        let state = this.grilles[playerId].isDone() || (this.count == 1 && playerId == this.getWinner().id)
+        if (state) {
+            this.play = false
         }
+        return state
     }
 
-    setLeader(id:string):void {
-        this.leader = id
-    }
-
-    setValues(long:number,larg:number,bombs:number):void{
-        for (var joueur of this.joueurs) {
-            this.grilles[joueur.id].setValues(long,larg,bombs)
+    isLose(playerId:string):boolean {
+        let state = this.grilles[playerId].isLose()
+        if (state) {
+            this.playing[playerId] = false
+            this.count --
         }
-        this.long=long
-        this.larg=larg
-        this.bombs=bombs
+        return state
     }
 
-    getStill():Joueur[]{
-        var still:Joueur[] = []
-        for (var joueur of this.joueurs) {
-            if (this.grilles[joueur.id].play == true) {
-                still.push(joueur)
-            }
-        }
-        return still
-    }
-
-    getFirst():Joueur{
-        var first:Joueur = this.joueurs[0]
-        var flags:number = this.grilles[this.joueurs[0].id].rightflags
+    getWinner():Joueur {
+        let first = this.joueurs[0]
         for (var joueur of this.joueurs) { 
-            if (flags == this.grilles[joueur.id].rightflags && this.grilles[joueur.id].play == true) {
+            if (this.grilles[joueur.id].getNotVisible() < this.grilles[first.id].getNotVisible()) {
                 first = joueur
-            } else if (flags < this.grilles[joueur.id].rightflags) {
-                first = joueur
-                flags = this.grilles[joueur.id].rightflags
             }
         }
         return first
     }
 
     createGrid():void {
-        if (this.play == true) {
+        if (this.play) {
             return
         } 
-        var tab:Case[][] = []
-        for (let i=0;i<this.long;i++) {
-            tab.push([])
-            for (let j=0;j<this.larg;j++) {
-                var newCase = new Case(false,false,false,0,false)
-                tab[i].push(newCase)
-            }
-        }
-        
+
+        let start:[number, number][] = []
         for (var joueur of this.joueurs) {
-            var xstart:number = this.start[joueur.id][0]
-            var ystart:number = this.start[joueur.id][1]
-            for (let x=xstart-1;x<xstart+2;x++) {
-                for (let y=ystart-1;y<ystart+2;y++) {
-                    if (x>=0 && y>=0 && x < this.long && y < this.larg) {
-                        tab[x][y].start = true
-                    }
-                }
-            }
+            start.push(this.start[joueur.id])
         }
-        
-    
-        for (let k=0;k<this.bombs;k++) {
-            var newX:number = Math.floor(Math.random()*this.long)
-            var newY:number = Math.floor(Math.random()*this.larg)
-            if (tab[newX][newY].bomb || tab[newX][newY].start) {
-                k--
+
+        let grille = new Demineur(this.long, this.larg, this.bombs)
+        let grid = grille.createGrid(start)
+
+        for (var joueur of this.joueurs) {
+            if (this.grilles[joueur.id]) {
+                this.grilles[joueur.id].rebuild(cloneDeep(grid), this.long, this.larg, this.bombs)
             } else {
-                tab[newX][newY].bomb = true
-                for (let x=newX-1;x<newX+2;x++) {
-                    for (let y=newY-1;y<newY+2;y++) {
-                        if (x>=0 && y>=0 && x < this.long && y < this.larg) {
-                            tab[x][y].around ++
-                        }
-                    }
-                }            
+                this.grilles[joueur.id] = cloneDeep(grille)
             }
-        }
-        
-        for (var joueur of this.joueurs) {
-            this.grilles[joueur.id].tab=cloneDeep(tab)
-            this.grilles[joueur.id].defVisible(this.start[joueur.id][0],this.start[joueur.id][1],[])
-            this.grilles[joueur.id].play = true
-            this.grilles[joueur.id].blank = false
+            this.grilles[joueur.id].defVisible(this.start[joueur.id][0], this.start[joueur.id][1], [])
+            this.playing[joueur.id] = true
         }
 
         this.play = true
         this.blank = false
+        this.timer = Date.now()
+        this.count = this.joueurs.length
     }
+
+    getGridById(id:string):Demineur|undefined {
+        return this.grilles[id]
+    }
+
+    getCount():number {
+        return this.count
+    }
+
+    getPlaying(playerId:string):boolean {
+        return this.playing[playerId]
+    }
+
 }

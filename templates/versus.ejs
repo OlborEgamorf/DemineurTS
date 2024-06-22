@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Démineur - Versus</title>
-    <link rel="stylesheet" href="CSS.css">
+    <link rel="stylesheet" href="/static/CSS.css">
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script src="inpage.js"></script>
+    <script src="/static/inpage.js"></script>
 </head>
 
 <script>
     window.addEventListener('contextmenu', (event) => {
     event.preventDefault()
 })
-    getName()
+
     createSocketVersus("<%=gameid%>")
 </script>
 
@@ -25,37 +25,42 @@
 
         </div>
     </div>
-    <div class="flex-container">
-        <div class="text">
-            Démineur Versus <br>
-            Code : <%=gameid%>
+    <div class="main-game">
+        <div id="allover" class="overlay">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+            <div class="overlay-content">
+    
+            </div>
         </div>
-
-        <div class="text" id="inputs">
-        </div>
-
-        <div class="text" id="container-count" style="display: none;">
+        <div class="flex-container">
+    
+            <div class="container-infos" id="container-joueurs">
+                <div class="title-infos">Joueurs</div>
+                <div class="trait"></div>
+    
+            </div>
+    
+            <div class="game-board" id="container-board" style="display: none;">
+                <table id="board">
+                </table>
+            </div>
+    
+            <div class="container-inputs" id="inputs">
+                <div class="title-infos">Paramètres</div>
+                <div class="trait"></div>
+            </div>
+    
+            <div class="container-infos" id="container-count">
+                <div class="title-infos">Partie</div>
+                <div class="trait"></div>
+                <div class="infos">Code : <%=gameid%></div>
+                <div class="infos" id="fl"></div>
+                <div class="infos" id="bo"></div>
+                <div class="infos" id="timer">00 : 00</div>
+                <input type="button" onclick="callReload()" value="Relancer" id="container-reload">
+            </div>
             
         </div>
-
-        <div class="game-board" id="container-board">
-            <br>
-            <table id="board">
-            </table>
-        </div>
-
-        <div class="text" id="container-reload" style="margin-top:10px;display: none;">
-            <input type="button" onclick="callReload()" value="Relancer">
-        </div>
-
-        <div class="text" id="container-joueurs">
-
-        </div>
-
-        <div class="text" id="container-reload" style="margin-top:10px">
-            <a href="/">Menu</a>
-        </div>
-        
     </div>
         
 </body>

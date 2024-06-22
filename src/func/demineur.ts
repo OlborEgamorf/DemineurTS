@@ -162,16 +162,22 @@ export class Demineur {
     isDone():boolean{
         return this.notvisible == this.bombs
     }
-
     isLose():boolean{
         return this.lose
     }
-
     getTotalFlags():number {
         return this.totalflags
     }
-
     getNotVisible():number {
         return this.notvisible
+    }
+
+    rebuild(tab:Case[][], long:number, larg:number, bombs:number):void {
+        this.tab = tab
+        this.long = long
+        this.larg = larg
+        this.bombs = bombs
+        this.notvisible = long * larg
+        this.lose = false
     }
 }
