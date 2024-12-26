@@ -86,7 +86,6 @@ function setWait(data:any,versus:boolean):void {
     var larg:number = data["larg"]
     var bombs:number = data["bombs"]
     var max:number = Math.floor(data["larg"]*data["long"]*0.7)
-    console.log(leader, localStorage.getItem("playerId"));
     
     if (leader == localStorage.getItem("playerId")) {
         $("#inputs").html(`
@@ -138,8 +137,9 @@ function setWait(data:any,versus:boolean):void {
         }
     }
 
-    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`)
-    $("#bo").html(`<img src='/static/bomb.png' class='flag count'>0`)
+    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg'> <span id="counting" data-count="0" data-total="0">0</span>`)
+    $("#bo").html(`0`)
+    $("#timer").html(`00 : 00`);
 }
 
 function callValues():void {
@@ -168,8 +168,8 @@ function setStart(data:any):boolean {
     } else {
         $("#inputs").css("display","none")
         $("#container-board").css("display","flex")
-        $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`)
-        $("#bo").html(`<img src='/static/bomb.png' class='flag count'>${bombs}`)
+        $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`)
+        $("#bo").html(bombs.toString())
         
         for (var i=0;i<long;i++) {
             var tr = $("<tr></tr>")
@@ -210,7 +210,7 @@ function setCreate(data:any):void {
                 }                       
             } else {
                 if (visible[x][y] == -1) {
-                    $(td).append(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag'>`)
+                    $(td).append(`<img src='/static/flag${localStorage.getItem("color")}.svg' class='flag'>`)
                 }
                 $(td).attr(`oncontextmenu`,`callFlag(this,${x},${y})`)
             }
@@ -222,10 +222,11 @@ function setCreate(data:any):void {
 
 function setJoin(data:any):void {
     var joueur = data["joueur"]
-    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`)
+    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.svg' class='flag count'>${joueur.nom}</div>`)
 }
 
 function setLeave(data:any,versus:boolean):void {
+
     var joueur = data["joueur"]
     $(`#${joueur.id}`).remove()
 
@@ -257,7 +258,7 @@ function setClear(data:any):void {
         $(`#${coord.x}_${coord.y}`).addClass("revealed")
         $(`#${coord.x}_${coord.y}`).addClass(`c${coord.around}`)
         if (coord.isbomb) {
-            $(`#${coord.x}_${coord.y}`).html("<img src='/static/bomb.png' class='bomb'>")
+            $(`#${coord.x}_${coord.y}`).html("<img src='/static/bomb.svg' class='bomb'>")
         } else if (coord.around != 0) {
             $(`#${coord.x}_${coord.y}`).html(`${coord.around}`)
         }
@@ -296,7 +297,7 @@ function setFlag(data:any):boolean {
     $(`#${x}_${y}`).empty()
     var count = document.getElementById("counting")
     if (isflag) {
-        $(`#${x}_${y}`).append(`<img src='/static/flag${color}.png' class='flag'>`)
+        $(`#${x}_${y}`).append(`<img src='/static/flag${color}.svg' class='flag'>`)
         var add:number = 1
     } else if (!isflag) {
         var add:number = -1 
@@ -324,8 +325,8 @@ function reload(){
     $("#board").empty()
     $("#inputs").css("display","flex")
     $("#container-board").css("display","none")
-    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`)
-    $("#bo").html(`<img src='/static/bomb.png' class='flag count'>0`)
+    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`)
+    $("#bo").html("0")
     stopTimer()
     closeNav()
 }

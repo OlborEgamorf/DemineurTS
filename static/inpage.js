@@ -99,7 +99,6 @@ function setWait(data, versus) {
     var larg = data["larg"];
     var bombs = data["bombs"];
     var max = Math.floor(data["larg"] * data["long"] * 0.7);
-    console.log(leader, localStorage.getItem("playerId"));
     if (leader == localStorage.getItem("playerId")) {
         $("#inputs").html(`
             <div class="title-infos">Paramètres</div>
@@ -146,8 +145,9 @@ function setWait(data, versus) {
             $("#inputs").append(`<input type="button" onclick="callReady()" value="Prêt !">`);
         }
     }
-    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`);
-    $("#bo").html(`<img src='/static/bomb.png' class='flag count'>0`);
+    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg'> <span id="counting" data-count="0" data-total="0">0</span>`);
+    $("#bo").html(`0`);
+    $("#timer").html(`00 : 00`);
 }
 function callValues() {
     var long = Number($("#rows").val());
@@ -172,8 +172,8 @@ function setStart(data) {
     else {
         $("#inputs").css("display", "none");
         $("#container-board").css("display", "flex");
-        $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`);
-        $("#bo").html(`<img src='/static/bomb.png' class='flag count'>${bombs}`);
+        $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`);
+        $("#bo").html(bombs.toString());
         for (var i = 0; i < long; i++) {
             var tr = $("<tr></tr>");
             for (var j = 0; j < larg; j++) {
@@ -207,7 +207,7 @@ function setCreate(data) {
             }
             else {
                 if (visible[x][y] == -1) {
-                    $(td).append(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag'>`);
+                    $(td).append(`<img src='/static/flag${localStorage.getItem("color")}.svg' class='flag'>`);
                 }
                 $(td).attr(`oncontextmenu`, `callFlag(this,${x},${y})`);
             }
@@ -217,7 +217,7 @@ function setCreate(data) {
 }
 function setJoin(data) {
     var joueur = data["joueur"];
-    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.png' class='flag count'>${joueur.nom}</div>`);
+    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.svg' class='flag count'>${joueur.nom}</div>`);
 }
 function setLeave(data, versus) {
     var joueur = data["joueur"];
@@ -247,7 +247,7 @@ function setClear(data) {
         $(`#${coord.x}_${coord.y}`).addClass("revealed");
         $(`#${coord.x}_${coord.y}`).addClass(`c${coord.around}`);
         if (coord.isbomb) {
-            $(`#${coord.x}_${coord.y}`).html("<img src='/static/bomb.png' class='bomb'>");
+            $(`#${coord.x}_${coord.y}`).html("<img src='/static/bomb.svg' class='bomb'>");
         }
         else if (coord.around != 0) {
             $(`#${coord.x}_${coord.y}`).html(`${coord.around}`);
@@ -281,7 +281,7 @@ function setFlag(data) {
     $(`#${x}_${y}`).empty();
     var count = document.getElementById("counting");
     if (isflag) {
-        $(`#${x}_${y}`).append(`<img src='/static/flag${color}.png' class='flag'>`);
+        $(`#${x}_${y}`).append(`<img src='/static/flag${color}.svg' class='flag'>`);
         var add = 1;
     }
     else if (!isflag) {
@@ -306,8 +306,8 @@ function reload() {
     $("#board").empty();
     $("#inputs").css("display", "flex");
     $("#container-board").css("display", "none");
-    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.png' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`);
-    $("#bo").html(`<img src='/static/bomb.png' class='flag count'>0`);
+    $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`);
+    $("#bo").html("0");
     stopTimer();
     closeNav();
 }

@@ -51,10 +51,13 @@
                 <div class="title-infos">Partie</div>
                 <div class="trait"></div>
                 <div class="infos">Code : <%=gameid%></div>
-                <div class="infos" id="fl"></div>
-                <div class="infos" id="bo"></div>
-                <div class="infos" id="timer">00 : 00</div>
-                <input type="button" onclick="callReload()" value="Relancer" id="container-reload">
+                <div class="infos" id="fl"><img src='/static/flagRouge.svg'><span id="counting">0</span></div>
+                <div class="infos"><img src='/static/bomb.svg'><span id="bo">0</span></div>
+                <div class="infos"><img src='/static/time.svg'><span id="timer">00 : 00</span></div>
+                <div id="container-buttons">
+                    <img src="/static/refresh.svg" onclick="callReload()" id="container-reload" class="img-button" alt="">
+                    <a href="/"><img src="/static/home.svg" id="container-index" class="img-button" alt=""></a>
+                </div>
             </div>
             
         </div>
