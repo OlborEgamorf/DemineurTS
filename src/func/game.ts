@@ -24,19 +24,40 @@ export abstract class Game {
     protected long:number = 15
     protected larg:number = 15
     protected bombs:number = 40
+    protected flags:{[key:string]:number} = {}
+    protected clear:{[key:string]:number} = {}
+
+    reset():void {
+        this.play = false
+        this.blank = false
+        this.flags = {}
+        this.clear = {}
+        for (var joueur of this.joueurs) {
+            this.flags[joueur.id] = 0
+            this.clear[joueur.id] = 0
+        }
+    }
 
     join(id:string,nom:string,color:string):void{
         this.joueurs.push({id:id,nom:nom,color:color})
+        this.flags[id] = 0
+        this.clear[id] = 0
         if (this.joueurs.length == 1) {           
             this.setLeader(id)
         }
     }
 
     leave(id:string):void {
-        this.joueurs = this.joueurs.filter((around,i,joueur) => {return around.id != id})
+        this.joueurs = this.joueurs.filter((v, i) => {return v.id != id})
         if (id == this.leader && this.joueurs.length != 0) {
             this.setLeader(this.joueurs[0].id)
         }
+        setTimeout(() => {
+            if (!(id in this.joueurs)) {
+                delete this.flags[id]
+                delete this.clear[id]
+            }
+        }, 6000)
     }
 
     setLeader(id:string):void {

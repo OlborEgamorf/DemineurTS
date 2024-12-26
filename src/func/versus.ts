@@ -10,12 +10,14 @@ export class Versus extends Game {
     private count:number = 0
 
     reset(){
+        super.reset()
+        this.ready = {}
+        this.start = {}
         for (var joueur of this.joueurs) {
             this.grilles[joueur.id].reset()
             this.ready[joueur.id] = false
             this.start[joueur.id] = [-1, -1]
         }
-        this.play = false
     }
 
     join(id:string,nom:string,color:string):void{

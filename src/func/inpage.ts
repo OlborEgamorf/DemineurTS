@@ -36,6 +36,8 @@ function createSocket(gameid:string):void {
             setWait(data,false)
         } else if (data.type == "message") {
             setMessage(data)
+        } else if (data.type == "closed") {
+            window.location.href = "/";
         }
     })
     setInterval(function () {

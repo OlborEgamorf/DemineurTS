@@ -2,11 +2,11 @@ import { Demineur } from "./demineur"
 import { Game, Infos, Joueur } from "./game"
 
 export class Coop extends Game {
-    private grid:Demineur
+    private grid:Demineur|undefined
 
     reset():void {
-        this.play = false
-        this.grid.reset()
+        super.reset()
+        this.grid?.reset()
     }
 
     createGrid(xstart:number,ystart:number):void {
@@ -22,22 +22,28 @@ export class Coop extends Game {
     }
 
     isDone():boolean {
-        let state = this.grid.isDone()
-        if (state) {
-            this.play = false
+        if (this.grid) {
+            let state = this.grid?.isDone()
+            if (state) {
+                this.play = false
+            }
+            return state
         }
-        return state
+        return false
     }
 
     isLose():boolean {
-        let state = this.grid.isLose()
-        if (state) {
-            this.play = false
+        if (this.grid) {
+            let state = this.grid.isLose()
+            if (state) {
+                this.play = false
+            }
+            return state
         }
-        return state
+        return false
     }
 
-    getGrid():Demineur {
+    getGrid():Demineur|undefined {
         return this.grid
     }
 }

@@ -45,6 +45,9 @@ function createSocket(gameid) {
         else if (data.type == "message") {
             setMessage(data);
         }
+        else if (data.type == "closed") {
+            window.location.href = "/";
+        }
     });
     setInterval(function () {
         socket.send(JSON.stringify({ type: "ping" }));

@@ -16,6 +16,10 @@ export function publishBlankSingle(infos:Infos,connection:WebSocket){
     connection.send(JSON.stringify({type:"blank", ...infos}))
 }
 
+export function publishConnectionClosed(connection:WebSocket){
+    connection.send(JSON.stringify({type:"closed"}))
+}
+
 export function publishValues(game:Game, infos:Infos, connections:ConnectionRepository,gameId:string) {
     for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
@@ -83,11 +87,12 @@ export function publishPlayerJoin(game:Game, connections:ConnectionRepository, g
     }
 }
 
-export function publishPlayerLeave(game:Game, connections:ConnectionRepository, gameId:string, joueur:Joueur) {
+export function publishPlayerLeave(game:Game, infos:Infos, connections:ConnectionRepository, gameId:string, joueur:Joueur) {
+    console.log(game.getJoueurs())
     for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
-            connection.send(JSON.stringify({type:"leave",joueur:joueur,leader:game.getLeader()}))
+            connection.send(JSON.stringify({type:"leave", joueur:joueur, ...infos}))
         }
     }
 }
