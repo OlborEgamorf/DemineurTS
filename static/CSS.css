@@ -26,21 +26,20 @@ body {
 
 .flex-container {
     display: grid;
-    gap:20px;
+    gap:50px;
 }
 
 .game-board {
     height: fit-content;
     overflow-x: scroll;
     overflow-y: scroll;
-    max-height: 90vh;
 }
 
 .revealed {
     background-color: #4a4a4a;
     text-align: center;
     border: none;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     border-radius: 0;
 }
@@ -56,8 +55,8 @@ body {
 }
 
 td {
-    height: 30px;
-    width: 30px;
+    height: 35px;
+    width: 35px;
     background-color: #5f5f5f;
     border: 1.5px solid;
     border-top-color: #808080;
@@ -65,15 +64,19 @@ td {
     border-bottom-color: #3e3e3e;
     border-left-color: #808080;
     text-align: center;
-    vertical-align: middle;
-    min-width: 30px;
-    min-height: 30px;
-    max-width: 30px;
-    max-height: 30px;
+    min-width: 35px;
+    min-height: 35px;
+    max-width: 35px;
+    max-height: 35px;
     padding: 0;
     user-select: none;
     border-radius: 5px;
     transition: background-color .3s, border-radius .3s, border .3s;
+
+    img {
+        position: relative;
+        top: 3px;
+    }
 }
 
 .c1 {
@@ -104,18 +107,14 @@ td {
 .bomb {
     height: 30px;
     width: 30px;
-    background-color: red;
+    background-color: orangered;
+    border-radius: 5px;
+
 }
 
 .flag {
-    height: 20px;
-    width: 20px;
-    
-}
-
-.count {
-    background-color: #5f5f5f;
-    margin-right: 10px;
+    height: 22px;
+    width: 22px;
 }
 
 td:hover {
@@ -128,17 +127,33 @@ td:hover {
 
 input[type=button] {
     border-radius: 10px;
-    background-color: #5F5F5F;
     width: 120px;
     display: flex;
     align-items: center;
     padding: 10px;
     margin: 5px;
-    border: none;
     color: white;
     justify-self: center;
     align-self: center;
     font-family: Roboto, Arial, Tahoma, sans-serif;
+    font-size: 16px;
+    border: solid #EED 2px;
+    background-color: #312D2D;
+}
+
+.img-button {
+    border-radius: 10px;
+    width: 22px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 5px;
+    justify-self: center;
+    align-self: center;
+    font-size: 16px;
+    border: solid #EED 2px;
+    background-color: #312D2D;
+    cursor: pointer;
 }
 
 .container-infos {
@@ -146,20 +161,24 @@ input[type=button] {
     flex-direction: column;
     justify-content: start;
     color: #FFFFFF;
-
-    input {
-        align-self: unset;
-    }
 }
 
 .infos {
     border-radius: 10px;
-    background-color: #5F5F5F;
+    background-color: #312D2D;
     width: 120px;
     display: flex;
     align-items: center;
     padding: 10px;
     margin: 5px;
+    border: solid #5F5F5F 2px;
+    align-self: center;
+
+    img {
+        margin-right: 10px;
+        height: 22px;
+        width: 22px;
+    }
 }
 
 /* The Overlay (background) */
@@ -255,7 +274,8 @@ input[type=button] {
     height: 0;
     padding: 0;
     border-radius: 50px;
-    margin: 0 15px 10px 10px;
+    margin: 0 auto 10px auto;
+    width: 100px;
 }
 
 .container-inputs {
@@ -427,16 +447,74 @@ a:visited  {
 
 #container-joueurs {
     grid-column: 1;
+    grid-row:1
 }
 
-#container-board {
+#container-board, #inputs {
     grid-column: 2;
+    grid-row:span 2;
+    align-self: center;
 }
 
 #container-count {
-    grid-column: 3;
+    grid-column: 1;
+    grid-row:2
 }
 
-#inputs {
-    grid-column: 2;
+#container-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+tr:first-of-type {
+    td:first-of-type {
+        border-radius: 5px 0 0 0;
+    }
+
+    td:last-of-type {
+        border-radius: 0 5px 0 0;
+    }
+}
+
+tr:last-of-type {
+    td:first-of-type {
+        border-radius: 0 0 0 5px;
+    }
+
+    td:last-of-type {
+        border-radius: 0 0 5px 0;
+    }
+}
+
+@media (max-width:800px) {
+    #container-joueurs {
+        grid-column: 1;
+        grid-row:3
+    }
+    
+    #container-board, #inputs {
+        grid-column: span 2;
+        grid-row:1
+    }
+    
+    #container-count {
+        grid-column: 1;
+        grid-row:2
+    }
+
+    .container-infos {
+        width: 90vw;
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        .trait, .title-infos {
+            display: none;
+        }
+    }
+
+    .game-board {
+        overflow-y: unset;
+        overflow-x: unset;
+    }
 }
