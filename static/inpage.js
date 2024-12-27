@@ -9,7 +9,7 @@ function createSocket(gameid) {
     const searchParams = new URLSearchParams({ ...session, gameid });
     socket = new WebSocket(`${window.location.protocol.replace("http", "ws")}//${window.location.host}/ws?${searchParams.toString()}`);
     socket.addEventListener('message', function (event) {
-        var data = JSON.parse(event.data);
+        let data = JSON.parse(event.data);
         console.log(data, data["type"]);
         if (data["type"] == "blank") {
             setStart(data);
@@ -58,7 +58,7 @@ function createSocketVersus(gameid) {
     const searchParams = new URLSearchParams({ ...session, gameid });
     socket = new WebSocket(`${window.location.protocol.replace("http", "ws")}//${window.location.host}/wsversus?${searchParams.toString()}`);
     socket.addEventListener('message', function (event) {
-        var data = JSON.parse(event.data);
+        let data = JSON.parse(event.data);
         console.log(data, data["type"]);
         if (data["type"] == "blank") {
             setStart(data);
@@ -97,35 +97,46 @@ function createSocketVersus(gameid) {
     });
 }
 function setWait(data, versus) {
-    var leader = data["leader"];
-    var long = data["long"];
-    var larg = data["larg"];
-    var bombs = data["bombs"];
-    var max = Math.floor(data["larg"] * data["long"] * 0.7);
+    let leader = data["leader"];
+    let long = data["long"];
+    let larg = data["larg"];
+    let bombs = data["bombs"];
+    let max = Math.floor(data["larg"] * data["long"] * 0.7);
     if (leader == localStorage.getItem("playerId")) {
-        $("#inputs").html(`
-            <div class="title-infos">Paramètres</div>
-            <div class="trait"></div>
-            <div class="infos">30 / 24 / 156</div>
-            <div class="infos">15 / 15 / 40</div>
-            <div class="infos">25 / 15 / 85</div>
-            <div class="span-input">Lignes : <span id="sp-rows">${long}</span><br><input type="range" value="${long}" min="5" max="30" id="rows"></div>
-            <div class="span-input">Colonnes : <span id="sp-cols">${larg}</span><br><input type="range" value="${larg}" min="5" max="30" id="cols"></div>
-            <div class="span-input">Bombes : <span id="sp-bombs">${bombs}</span><br><input type="range" value="${bombs}" min="5" max="${max}" id="bombs"></div>
-            <input type="button" onclick="callStart()" value="Jouer !">
+        $("#inputs").empty();
+        $("#inputs").append(`
+            <div class="sliders">
+                <div class="span-input">Lignes : <span id="sp-rows">${long}</span><br><input type="range" value="${long}" min="5" max="30" id="rows"></div>
+                <div class="span-input">Colonnes : <span id="sp-cols">${larg}</span><br><input type="range" value="${larg}" min="5" max="30" id="cols"></div>
+                <div class="span-input">Bombes : <span id="sp-bombs">${bombs}</span><br><input type="range" value="${bombs}" min="5" max="${max}" id="bombs"></div>
+            </div>
         `);
+        $("#container-inputs").append(`
+            <div class="container-buttons">
+                <img src="/static/save.svg" onclick="addPreset()" id="container-save" class="img-button" alt="">
+                <input type="button" onclick="callStart()" value="Jouer !">
+            </div>
+        `);
+        $("#inputs").append(`<div class="presets" id="presets"></div>`);
+        for (let i = 0; i < Number(localStorage.getItem("nbPresets")); i++) {
+            let preset = localStorage.getItem("preset" + i);
+            if (preset) {
+                let params = preset.split(";");
+                $("#presets").append(`<div class="infos infos-preset" id="preset-${i}" onclick="playPreset(${i})"><p>Taille - ${params[0]} x ${params[1]}</p><p>Bombes - ${params[2]}</p><img src="/static/remove.svg" class="trash" alt="" onclick="delPreset(${i})"></div>`);
+            }
+        }
         $("input[type=range]").on("input", function () {
-            var a = $(this).val();
+            let a = $(this).val();
             if (typeof a === "string") {
                 $("#sp-" + this.id).html(a);
             }
             if (this.id == "cols" || this.id == "rows") {
-                var a = $("#cols").val();
-                var b = $("#rows").val();
+                let a = $("#cols").val();
+                let b = $("#rows").val();
                 if (typeof a === "string" && typeof b === "string") {
-                    var max = Math.floor(Number.parseInt(a) * Number.parseInt(b) * 0.7);
+                    let max = Math.floor(Number.parseInt(a) * Number.parseInt(b) * 0.7);
                     $("#bombs").attr({ max: max });
-                    var c = $("#bombs").val();
+                    let c = $("#bombs").val();
                     if (typeof c === "string") {
                         $("#bombs").val(Number.parseInt(c) > max ? max : c);
                         $("#sp-bombs").html((Number.parseInt(c) > max ? max : c).toString());
@@ -133,17 +144,15 @@ function setWait(data, versus) {
                 }
             }
         });
-        $("input[type=range]").on("focusout", function () {
+        $("input[type=range]").on("change", function () {
             callValues();
         });
     }
     else {
         $("#inputs").html(`
-        <div class="title-infos">Paramètres</div>
-        <div class="trait"></div>
-        <span class="span-input">Lignes<br>${long}</span>
-        <span class="span-input">Colonnes<br>${larg}</span>
-        <span class="span-input">Bombes<br>${bombs}</span>`);
+            <span class="span-input">Lignes - ${long}</span>
+            <span class="span-input">Colonnes - ${larg}</span>
+            <span class="span-input">Bombes - ${bombs}</span>`);
         if (versus) {
             $("#inputs").append(`<input type="button" onclick="callReady()" value="Prêt !">`);
         }
@@ -153,9 +162,9 @@ function setWait(data, versus) {
     $("#timer").html(`00 : 00`);
 }
 function callValues() {
-    var long = Number($("#rows").val());
-    var larg = Number($("#cols").val());
-    var bombs = Number($("#bombs").val());
+    let long = Number($("#rows").val());
+    let larg = Number($("#cols").val());
+    let bombs = Number($("#bombs").val());
     socket.send(JSON.stringify({ type: "values", long: long, larg: larg, bombs: bombs }));
 }
 function callStart() {
@@ -165,21 +174,21 @@ function callReady() {
     socket.send(JSON.stringify({ type: "ready" }));
 }
 function setStart(data) {
-    var long = data["long"];
-    var larg = data["larg"];
-    var bombs = data["bombs"];
-    var flags = data["flags"];
+    let long = data["long"];
+    let larg = data["larg"];
+    let bombs = data["bombs"];
+    let flags = data["flags"];
     if (long < 5 || larg < 5 || bombs < 5 || long > 100 || larg > 100 || bombs > 3000 || long * larg < bombs) {
         return false;
     }
     else {
-        $("#inputs").css("display", "none");
+        $("#container-inputs").css("display", "none");
         $("#container-board").css("display", "flex");
         $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`);
         $("#bo").html(bombs.toString());
-        for (var i = 0; i < long; i++) {
-            var tr = $("<tr></tr>");
-            for (var j = 0; j < larg; j++) {
+        for (let i = 0; i < long; i++) {
+            let tr = $("<tr></tr>");
+            for (let j = 0; j < larg; j++) {
                 $(tr).append(`<td id="${i}_${j}" data-row='${i}' data-col='${j}' onclick="callCreate(${i},${j})"></td>`);
             }
             $("#board").append(tr);
@@ -189,17 +198,17 @@ function setStart(data) {
 }
 function callCreate(i, j) {
     socket.send(JSON.stringify({ type: "create", xstart: i, ystart: j }));
-    var td = $(`#${i}_${j}`);
+    let td = $(`#${i}_${j}`);
     td.addClass("revealed");
     td.addClass("c0");
 }
 function setCreate(data) {
-    var visible = data["visible"];
-    var long = data["long"];
-    var larg = data["larg"];
-    for (var x = 0; x < long; x++) {
-        for (var y = 0; y < larg; y++) {
-            var td = $(`#${x}_${y}`);
+    let visible = data["visible"];
+    let long = data["long"];
+    let larg = data["larg"];
+    for (let x = 0; x < long; x++) {
+        for (let y = 0; y < larg; y++) {
+            let td = $(`#${x}_${y}`);
             td.attr("onclick", `callClear(this,${x},${y})`);
             if (visible[x][y] >= 0) {
                 td.addClass("revealed");
@@ -219,20 +228,25 @@ function setCreate(data) {
     startTimer(data["timer"]);
 }
 function setJoin(data) {
-    var joueur = data["joueur"];
-    $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.svg' class='flag count'>${joueur.nom}</div>`);
+    let joueur = data["joueur"];
+    if (joueur.id == data["leader"]) {
+        $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.svg' class='flag count'> <img src='/static/crown.svg' class='flag count'>${joueur.nom}</div>`);
+    }
+    else {
+        $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.svg' class='flag count'>${joueur.nom}</div>`);
+    }
 }
 function setLeave(data, versus) {
-    var joueur = data["joueur"];
+    let joueur = data["joueur"];
     $(`#${joueur.id}`).remove();
     if (data["leader"] == localStorage.getItem("playerId")) {
         setWait(data, versus);
     }
 }
 function setAllPlayers(data, id) {
-    for (var joueur of data["joueurs"]) {
+    for (let joueur of data["joueurs"]) {
         if (joueur.id != id) {
-            setJoin({ joueur: joueur });
+            setJoin({ joueur: joueur, leader: data["leader"] });
         }
     }
 }
@@ -245,8 +259,8 @@ function callClear(caseG, i, j) {
     }
 }
 function setClear(data) {
-    var clear = data["liste"];
-    for (var coord of clear) {
+    let clear = data["liste"];
+    for (let coord of clear) {
         $(`#${coord.x}_${coord.y}`).addClass("revealed");
         $(`#${coord.x}_${coord.y}`).addClass(`c${coord.around}`);
         if (coord.isbomb) {
@@ -258,8 +272,8 @@ function setClear(data) {
     }
 }
 function setMessage(data) {
-    var mess = data["mess"];
-    for (var td of document.getElementsByTagName("td")) {
+    let mess = data["mess"];
+    for (let td of document.getElementsByTagName("td")) {
         td.setAttribute("onclick", "");
         td.setAttribute("oncontextmenu", "");
     }
@@ -274,24 +288,25 @@ function callFlag(caseG, i, j) {
     }
 }
 function setFlag(data) {
-    var isflag = data["isflag"];
-    var x = data["x"];
-    var y = data["y"];
-    var color = data["color"];
+    let isflag = data["isflag"];
+    let x = data["x"];
+    let y = data["y"];
+    let color = data["color"];
     if (!color) {
         color = localStorage.getItem("color");
     }
     $(`#${x}_${y}`).empty();
-    var count = document.getElementById("counting");
+    let count = document.getElementById("counting");
+    let add;
     if (isflag) {
         $(`#${x}_${y}`).append(`<img src='/static/flag${color}.svg' class='flag'>`);
-        var add = 1;
+        add = 1;
     }
     else if (!isflag) {
-        var add = -1;
+        add = -1;
     }
     else {
-        var add = 0;
+        add = 0;
     }
     if (count != null) {
         count.dataset.count = String(Number(count.dataset.count) + add);
@@ -307,7 +322,7 @@ function callReload() {
 }
 function reload() {
     $("#board").empty();
-    $("#inputs").css("display", "flex");
+    $("#container-inputs").css("display", "flex");
     $("#container-board").css("display", "none");
     $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`);
     $("#bo").html("0");
@@ -319,7 +334,7 @@ function userIndex() {
     $("#name").val(user.name);
     $("#" + user.color).addClass("active");
     $("#name").on("input", function () {
-        var name = $(this).val();
+        let name = $(this).val();
         if (typeof (name) === "string") {
             if (name.length == 0) {
                 name = "Joueur sans nom";
@@ -335,7 +350,7 @@ function userIndex() {
 }
 function startTimer(start) {
     time = setInterval(function () {
-        var delta = Date.now() - start;
+        let delta = Date.now() - start;
         $("#timer").html(`${String(Math.floor(delta / 60000)).padStart(2, '0')} : ${String(Math.floor(delta / 1000 % 60)).padStart(2, '0')}`);
     }, 1000);
 }
@@ -350,10 +365,11 @@ function setItem(item, value) {
 }
 function saveSession(session) {
     localStorage.clear();
-    localStorage.setItem("playerId", session.id);
-    localStorage.setItem("name", session.name);
-    localStorage.setItem("signature", session.signature);
-    localStorage.setItem("color", session.color);
+    setItem("playerId", session.id);
+    setItem("name", session.name);
+    setItem("signature", session.signature);
+    setItem("color", session.color);
+    setItem("nbPresets", "0");
     return session;
 }
 function getSession() {
@@ -362,7 +378,7 @@ function getSession() {
     const signature = localStorage.getItem("signature");
     const color = localStorage.getItem("color");
     if (!signature || !name || !playerId || !color) {
-        var httpRequest = new XMLHttpRequest();
+        let httpRequest = new XMLHttpRequest();
         httpRequest.open("POST", `/api/players`, false);
         httpRequest.send();
         const response = JSON.parse(httpRequest.response);
@@ -372,5 +388,32 @@ function getSession() {
     }
     else {
         return { id: playerId, name: name, signature: signature, color: color };
+    }
+}
+function addPreset() {
+    let long = Number($("#rows").val());
+    let larg = Number($("#cols").val());
+    let bombs = Number($("#bombs").val());
+    let nbPresets = Number(localStorage.getItem("nbPresets"));
+    $("#presets").append(`<div class="infos infos-preset" id="preset-${nbPresets}" onclick="playPreset(${nbPresets})"><p>Taille - ${long} x ${larg}</p><p>Bombes - ${bombs}</p><img src="/static/remove.svg" class="trash" alt="" onclick="delPreset(${nbPresets})"></div>`);
+    setItem("preset" + nbPresets++, `${long};${larg};${bombs}`);
+    setItem("nbPresets", nbPresets.toString());
+}
+function delPreset(idPreset) {
+    localStorage.removeItem("preset" + idPreset);
+    $("#preset-" + idPreset).remove();
+}
+function playPreset(idPreset) {
+    let preset = localStorage.getItem("preset" + idPreset);
+    if (preset) {
+        let params = preset.split(";");
+        $("#rows").val(params[0]);
+        $("#sp-rows").html(params[0]);
+        $("#cols").val(params[1]);
+        $("#sp-cols").html(params[1]);
+        $("#bombs").attr("max", Number(params[0]) * Number(params[1]) * 0.7);
+        $("#bombs").val(params[2]);
+        $("#sp-bombs").html(params[2]);
+        callValues();
     }
 }

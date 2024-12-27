@@ -39,7 +39,7 @@ body {
     background-color: #4a4a4a;
     text-align: center;
     border: none;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     border-radius: 0;
 }
@@ -80,19 +80,19 @@ td {
 }
 
 .c1 {
-    color:#5693e9
+    color:#59afff
 }
 .c2 {
-    color:#1ad27d
+    color:#31dc65
 }
 .c3 {
-    color:#f01256
+    color:#ca3b3b
 }
 .c4 {
-    color:#c412f0
+    color:#c15be3
 }
 .c5 {
-    color:#e3e126
+    color:#e1cc1e
 }
 .c6 {
     color:#29dfbf
@@ -166,7 +166,7 @@ input[type=button] {
 .infos {
     border-radius: 10px;
     background-color: #312D2D;
-    width: 120px;
+    width: 150px;
     display: flex;
     align-items: center;
     padding: 10px;
@@ -181,6 +181,23 @@ input[type=button] {
     }
 }
 
+.infos-preset {
+    flex-direction: column;
+    align-items: normal;
+    gap: 5px;
+    width: 120px;
+    transition: all .5s;
+
+    p {
+        margin:0
+    }
+}
+
+.infos-preset:hover {
+    border: solid #EEEEED 2px;
+    transition: all .5s;
+    cursor: pointer;
+}
 /* The Overlay (background) */
 .overlay {
     /* Height & width depends on how you want to reveal the overlay (see JS below) */   
@@ -249,7 +266,11 @@ input[type=button] {
 } 
 
 .span-input {
-    margin:10px;
+    margin:10px 0;
+}
+
+input[type="range"] {
+    width: 500px;
 }
 
 .image_picker_image {
@@ -281,11 +302,21 @@ input[type=button] {
 .container-inputs {
     color:#FFFFFF;
     display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
     width: fit-content;
     flex-direction: column;
-    justify-self: center;
+}
+
+.presets {
+    display: flex;
+    max-width: 500px;
+    flex-wrap: wrap;
+    justify-content: start;
+    gap: 5px 19px;
+    margin-bottom: 20px;
+}
+
+.sliders {
+    width: 500px;
 }
 
 input {
@@ -450,10 +481,15 @@ a:visited  {
     grid-row:1
 }
 
-#container-board, #inputs {
+#container-board, #container-inputs {
     grid-column: 2;
     grid-row:span 2;
     align-self: center;
+}
+
+#inputs {
+    width: 500px;
+    align-self: start;
 }
 
 #container-count {
@@ -461,7 +497,7 @@ a:visited  {
     grid-row:2
 }
 
-#container-buttons {
+.container-buttons {
     display: flex;
     justify-content: center;
     gap: 10px;
@@ -493,7 +529,7 @@ tr:last-of-type {
         grid-row:3
     }
     
-    #container-board, #inputs {
+    #container-board, #container-inputs {
         grid-column: span 2;
         grid-row:1
     }
@@ -517,4 +553,22 @@ tr:last-of-type {
         overflow-y: unset;
         overflow-x: unset;
     }
+}
+
+.trash {
+    border: none;
+    padding: 0;
+    margin: 0;
+    align-self: flex-start;
+    height: 22px;
+    width: 22px;
+    transition: all .5s;
+    border-radius: 10px;
+    border: solid #312D2D 2px;
+    padding: 3px;
+}
+
+.trash:hover {
+    transition: all .5s;
+    border: solid #EED 2px;
 }
