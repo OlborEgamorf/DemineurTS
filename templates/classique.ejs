@@ -32,9 +32,8 @@
         <div class="flex-container">
     
             <div class="container-infos" id="container-joueurs">
-                <div class="title-infos">Joueurs</div>
-                <div class="trait"></div>
-    
+                <a href="/"><img src="/static/home.svg" id="container-index" class="img-button" alt=""></a>
+                <div class="infos">Code : <%=gameid%></div>
             </div>
     
             <div class="container-inputs" id="container-inputs">
@@ -43,17 +42,12 @@
                 <div id="inputs"></div>
             </div>
     
-            <div class="container-infos" id="container-count">
-                <div class="title-infos">Partie</div>
-                <div class="trait"></div>
-                <div class="infos">Code : <%=gameid%></div>
+            <div class="container-infos" id="container-count" style="display: none;">
                 <div class="infos" id="fl"><img src='/static/flagRouge.svg'><span id="counting">0</span></div>
                 <div class="infos"><img src='/static/bomb.svg'><span id="bo">0</span></div>
                 <div class="infos"><img src='/static/time.svg'><span id="timer">00 : 00</span></div>
-                <div class="container-buttons">
-                    <img src="/static/refresh.svg" onclick="callReload()" id="container-reload" class="img-button" alt="">
-                    <a href="/"><img src="/static/home.svg" id="container-index" class="img-button" alt=""></a>
-                </div>
+                <img src="/static/refresh.svg" onclick="callReload()" id="container-reload" class="img-button" alt="">
+                
             </div>
 
             <div class="game-board" id="container-board" style="display: none;">

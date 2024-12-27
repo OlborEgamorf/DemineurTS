@@ -23,12 +23,14 @@
         <div class="card">
             <div class="img-text">
                 <img src="flagBlanc.svg">
-                Partie coopérative
+                Partie Coop
             </div>
             <p>Jouez et progressez jusqu’à 8 sur une même grille de démineur.</p>
-            <div class="create">
-                <a href="/play">Créer une partie</a>
-            </div>
+            <a href="/play">
+                <div class="create">
+                    Créer une partie
+                </div>
+            </a>
         </div>
 
         <div class="card">
@@ -37,11 +39,13 @@
                 Affrontement
             </div>
             <p>Affrontez vos amis sur une grille identique, le premier à résoudre gagne !</p>
-            <div class="create">
-                <a href="/versus">Créer une partie</a>
-            </div>
+            <a href="/versus">
+                <div class="create">
+                    Créer une partie
+                </div>
+            </a>
         </div>
-        <form class="search" action="/play">
+        <form class="search" action="/search">
             <input type="text" name="gameid" id="gameid" placeholder="Rejoindre une partie avec un code" maxlength="4">
             <input type="submit" value="Jouer !">
         </form>

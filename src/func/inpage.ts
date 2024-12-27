@@ -2,6 +2,7 @@ import {Entry} from "../func/demineur";
 
 var socket:null|WebSocket = null
 var time:null|NodeJS.Timeout = null
+var lead:boolean = false
 
 // Création d'une websocket pour une partie classique
 function createSocket(gameid:string):void {
@@ -22,6 +23,7 @@ function createSocket(gameid:string):void {
         } else if (data.type == "clear") {
             setClear(data)
         } else if (data.type == "createall") {
+            setWait(data, false)
             setStart(data)
             setCreate(data)
         } else if (data.type == "reload") {
@@ -90,6 +92,7 @@ function setWait(data:any,versus:boolean):void {
     let max:number = Math.floor(data["larg"]*data["long"]*0.7)
     
     if (leader == localStorage.getItem("playerId")) {
+        lead = true
         
         $("#inputs").empty()
 
@@ -182,6 +185,7 @@ function setStart(data:any):boolean {
         return false
     } else {
         $("#container-inputs").css("display","none")
+        $("#container-count").css("display","flex")
         $("#container-board").css("display","flex")
         $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg'> <span id="counting" data-count="${flags}" data-total="${bombs}">${flags}</span>`)
         $("#bo").html(bombs.toString())
@@ -250,7 +254,7 @@ function setLeave(data:any,versus:boolean):void {
     let joueur = data["joueur"]
     $(`#${joueur.id}`).remove()
 
-    if (data["leader"] == localStorage.getItem("playerId")) {
+    if (data["leader"] == localStorage.getItem("playerId") && !lead) {
         setWait(data,versus)
     }
 }
@@ -346,6 +350,7 @@ function reload(){
     $("#board").empty()
     $("#container-inputs").css("display","flex")
     $("#container-board").css("display","none")
+    $("#container-count").css("display","none")
     $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg' class='flag count'> <span id="counting" data-count="0" data-total="0">0</span>`)
     $("#bo").html("0")
     stopTimer()
