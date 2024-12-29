@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var socket = null;
 var time = null;
 var lead = false;
-var notif = 0;
 // Création d'une websocket pour une partie classique
 function createSocket(gameid) {
     // 
@@ -104,6 +103,12 @@ function createSocketVersus(gameid) {
         else if (data.type == "message") {
             setMessage(data);
         }
+        else if (data.type == "closed") {
+            announceError("Après trop de temps inactif, votre session a été deconnectée.");
+        }
+        else if (data.type == "err") {
+            announceError(data.mess);
+        }
     });
 }
 function setWait(data, versus) {
@@ -123,7 +128,7 @@ function setWait(data, versus) {
             </div>
         `);
         $("#container-inputs").append(`
-            <div class="container-buttons">
+            <div class="container-buttons" id="inputs-buttons">
                 <img src="/static/save.svg" onclick="addPreset()" id="container-save" class="img-button" alt="">
                 <input type="button" onclick="callStart()" value="Jouer !">
             </div>
@@ -161,12 +166,11 @@ function setWait(data, versus) {
     }
     else {
         $("#inputs").html(`
-            <span class="span-input">Lignes - ${long}</span>
-            <span class="span-input">Colonnes - ${larg}</span>
-            <span class="span-input">Bombes - ${bombs}</span>`);
-        if (versus) {
-            $("#inputs").append(`<input type="button" onclick="callReady()" value="Prêt !">`);
-        }
+            <div class="span-input">Le leader décide des paramètres de la partie...</div>
+            <div class="span-input">Lignes - ${long}</div>
+            <div class="span-input">Colonnes - ${larg}</div>
+            <div class="span-input">Bombes - ${bombs}</div>
+        `);
     }
     $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg'> <span id="counting" data-count="0" data-total="0">0</span>`);
     $("#bo").html(`0`);
@@ -180,9 +184,6 @@ function callValues() {
 }
 function callStart() {
     socket.send(JSON.stringify({ type: "start" }));
-}
-function callReady() {
-    socket.send(JSON.stringify({ type: "ready" }));
 }
 function setStart(data) {
     let long = data["long"];

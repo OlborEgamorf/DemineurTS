@@ -27,6 +27,10 @@ export function publishErrorSingle(message:string, log:string, connection:WebSoc
     f.log.error(log)
 }
 
+export function publishMessageSingle(message:string, connection:WebSocket){
+    connection.send(JSON.stringify({type:"err", mess:message}))
+}
+
 export function publishValues(game:Game, infos:Infos, connections:ConnectionRepository,gameId:string) {
     for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)

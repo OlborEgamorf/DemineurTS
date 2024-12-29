@@ -3,7 +3,6 @@ import {Entry} from "../func/demineur";
 var socket:null|WebSocket = null
 var time:null|NodeJS.Timeout = null
 var lead:boolean = false
-var notif:number = 0
 
 // Création d'une websocket pour une partie classique
 function createSocket(gameid:string):void {
@@ -86,6 +85,10 @@ function createSocketVersus(gameid:string):void {
             setWait(data,true)
         } else if (data.type == "message") {
             setMessage(data)
+        } else if (data.type == "closed") {
+            announceError("Après trop de temps inactif, votre session a été deconnectée.")
+        } else if (data.type == "err") {
+            announceError(data.mess)
         }
     })
 }
@@ -110,13 +113,14 @@ function setWait(data:any,versus:boolean):void {
                 <div class="span-input">Bombes : <span id="sp-bombs">${bombs}</span><br><input type="range" value="${bombs}" min="5" max="${max}" id="bombs"></div>
             </div>
         `)
-
+        
         $("#container-inputs").append(`
-            <div class="container-buttons">
+            <div class="container-buttons" id="inputs-buttons">
                 <img src="/static/save.svg" onclick="addPreset()" id="container-save" class="img-button" alt="">
                 <input type="button" onclick="callStart()" value="Jouer !">
             </div>
         `)
+        
 
         $("#inputs").append(`<div class="presets" id="presets"></div>`)
         for (let i=0; i<Number(localStorage.getItem("nbPresets")); i++) {
@@ -154,12 +158,11 @@ function setWait(data:any,versus:boolean):void {
 
     } else {
         $("#inputs").html(`
-            <span class="span-input">Lignes - ${long}</span>
-            <span class="span-input">Colonnes - ${larg}</span>
-            <span class="span-input">Bombes - ${bombs}</span>`)
-        if (versus) {
-            $("#inputs").append(`<input type="button" onclick="callReady()" value="Prêt !">`)
-        }
+            <div class="span-input">Le leader décide des paramètres de la partie...</div>
+            <div class="span-input">Lignes - ${long}</div>
+            <div class="span-input">Colonnes - ${larg}</div>
+            <div class="span-input">Bombes - ${bombs}</div>
+        `)
     }
 
     $("#fl").html(`<img src='/static/flag${localStorage.getItem("color")}.svg'> <span id="counting" data-count="0" data-total="0">0</span>`)
@@ -176,10 +179,6 @@ function callValues():void {
 
 function callStart():void {
     socket!.send(JSON.stringify({type:"start"}))
-}
-
-function callReady():void {
-    socket!.send(JSON.stringify({type:"ready"}))
 }
 
 function setStart(data:any):boolean {

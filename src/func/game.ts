@@ -38,13 +38,17 @@ export abstract class Game {
         }
     }
 
-    join(id:string,nom:string,color:string):void{
+    join(id:string,nom:string,color:string):boolean{
+        if (this.joueurs.filter((val, index) => {return val.id == id}).length != 0) {
+            return false
+        }
         this.joueurs.push({id:id,nom:nom,color:color})
         this.flags[id] = 0
         this.clear[id] = 0
         if (this.joueurs.length == 1) {           
             this.setLeader(id)
         }
+        return true
     }
 
     leave(id:string):void {

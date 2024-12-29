@@ -11,7 +11,7 @@ import { randomID } from '../func/functions'
 import { Versus } from '../func/versus'
 import { ConnectionRepository } from './repositories/ConnectionRepository'
 import { GameRepository } from './repositories/GameRepository'
-import { publishBlank, publishBlankSingle, publishClear, publishConnectionClosed, publishCreate, publishCreateSingle, publishErrorSingle, publishFlag, publishMessage, publishPlayerJoin, publishPlayerLeave, publishPlayersIn, publishReload, publishValues } from './socket'
+import { publishBlank, publishBlankSingle, publishClear, publishConnectionClosed, publishCreate, publishCreateSingle, publishErrorSingle, publishFlag, publishMessage, publishMessageSingle, publishPlayerJoin, publishPlayerLeave, publishPlayersIn, publishReload, publishValues } from './socket'
 import { publishClearVS, publishCreateVS, publishFlagVS, publishMessageVS } from './socketVS'
 import { IQuerystring, requestGeneric, requestStatic } from '../types'
 
@@ -44,6 +44,8 @@ fastify.register(async (f) => {
         const playerName = query.name
         const color = query.color
         const gameId = query.gameid
+        const game = games.find(gameId) as Coop
+        let pings:number = 0
 
         if (!gameId || !playerId || !signature || !playerName || !color) {
             publishErrorSingle("Un élément à la création de la partie est manquant.", "MISSING PARAMETER", connection, f)
@@ -51,12 +53,12 @@ fastify.register(async (f) => {
         } else if (!verify(playerId,signature)) {
             publishErrorSingle("Connexion interdite.", "SIGNATURE", connection, f)   
 
+        } else if (!game.join(playerId,playerName,color)) {
+            publishErrorSingle("Vous êtes déjà dans cette partie.", "DOUBLE CONNEXION", connection, f)   
+        
         } else {
             try {
-                const game = games.find(gameId) as Coop
                 let grid = game.getGrid() as Demineur
-                let pings:number = 0
-
                 connections.persist(playerId,gameId,connection)
 
                 if (game.isPlay()) {
@@ -65,7 +67,6 @@ fastify.register(async (f) => {
                     publishBlankSingle(game.getAllInfos(grid),connection)
                 }
 
-                game.join(playerId,playerName,color)
                 publishPlayerJoin(game,connections,gameId,{id:playerId,nom:playerName,color:color})
                 publishPlayersIn(game, game.getAllInfos(grid), connection)
                 
@@ -152,102 +153,116 @@ fastify.register(async (f) => {
         const playerName = query.name || "Invité"
         const color = query.color
         const gameId = query.gameid
-
-        if (!gameId) {
-            connection.close()
-            f.log.error("GAMEID")
-            return
-        }
-
-        if (!verify(playerId,signature)) {
-            f.log.error("SIGNATURE")
-            connection.send(JSON.stringify({type:"error",code:"KEK"}))
-            return
-        }
-
         const game = games.find(gameId) as Versus
-        let grid = game.getGridById(playerId)
-        if (game.isPlay() && grid) {
-            if (grid) {
+        let pings:number = 0
+
+        if (!gameId || !playerId || !signature || !playerName || !color) {
+            publishErrorSingle("Un élément à la création de la partie est manquant.", "MISSING PARAMETER", connection, f)
+
+        } else if (!verify(playerId,signature)) {
+            publishErrorSingle("Connexion interdite.", "SIGNATURE", connection, f)   
+
+        } else if (!game.join(playerId,playerName,color)) {
+            publishErrorSingle("Vous êtes déjà dans cette partie.", "DOUBLE CONNEXION", connection, f)   
+
+        } else {
+
+            let grid = game.getGridById(playerId) as Demineur
+            connections.persist(playerId,gameId,connection)
+
+            if (game.isPlay()) {
                 publishCreateSingle(grid.getVisible(), game.getAllInfos(grid), connection)
-            } else {
-                connection.send(JSON.stringify({type:"error",code:"KEK"}))
-                return
+            } else if (game.isBlank()) {
+                publishBlankSingle(game.getAllInfos(grid), connection)
             }
+
+            publishPlayerJoin(game, connections, gameId, {id:playerId,nom:playerName,color:color})
+            publishPlayersIn(game, game.getAllInfos(grid), connection)
             
-        } else if (game.isBlank()) {
-            publishBlankSingle(game.getAllInfos(grid), connection)
-        }
-
-        connections.persist(playerId,gameId,connection)
-        game.join(playerId,playerName,color)
-        publishPlayerJoin(game, connections, gameId, {id:playerId,nom:playerName,color:color})
-        publishPlayersIn(game, game.getAllInfos(grid), connection)
-        
-        connection.on("message", (rawMessage) => {
-            const message = JSON.parse(rawMessage.toLocaleString())
-            if (!grid) {
-                grid = game.getGridById(playerId) as Demineur
-            }
-            switch (message.type) {
-                case "values":
-                    game.setValues(Number(message.long),Number(message.larg),Number(message.bombs))
-                    publishValues(game, game.getAllInfos(grid), connections, gameId)
-                    break
-                case "create":
-                    game.addStart(playerId,Number(message.xstart),Number(message.ystart))
-                    if (game.isStart()) {
-                        game.createGrid()
-                        publishCreateVS(game,connections,gameId)
-                    }
-                    break
-                case "flag":
-                    let isflag = grid.setFlag(Number(message.x),Number(message.y))
-                    publishFlagVS(connection, isflag, color, Number(message.x), Number(message.y))
-                    break
-                case "clear":
-                case "cleararound":
-                    let liste = message.type == "clear" ? grid.clearCase(Number(message.x),Number(message.y)) : grid.clearAroundCase(Number(message.x),Number(message.y))
-    
-                    publishClearVS(connection,liste)
-    
-                    if (game.isWin(playerId)) {
-                        publishMessage(game,connections,gameId,`${playerName} a gagné ! Il a nettoyé sa grille plus vite que tout le monde !`)
-                    } else if (game.isLose(playerId)) {
-                        let winner = game.getWinner()
-                        if (game.getCount() == 0) {
-                            publishMessage(game,connections,gameId,`${winner.nom} a gagné ! Sa grille a été la mieux nettoyée !`)
-                        } else if (game.getCount() == 1 && game.getPlaying(winner.id)) {
-                            publishMessage(game,connections,gameId,`${winner.nom} a gagné ! C'est le dernier en vie, et sa grille est mieux nettoyée !`)
-                        } else if (winner.id == playerId) {
-                            publishMessageVS(connection,`Vous avez fait exploser une bombe ! Vous êtes éliminé, mais vous pouvez toujours gagner si votre grille est mieux nettoyée.`)
-                        } else {
-                            publishMessageVS(connection,`Vous avez fait exploser une bombe ! Vous êtes éliminé, et vous ne pourrez pas gagner.`)
-                        }
-                    }
-                    break
-                case "reload":
-                    game.reset()
-                    publishReload(game,connections,gameId)
-                    break
-                case "ready":
-                case "start":
-                    game.setReady(playerId)
-                    if (game.isReady() && game.getJoueurs().length > 1) {
-                        game.setBlank(true)
-                        publishBlank(game, game.getAllInfos(grid), connections, gameId)
-                    }
-                    break
+            connection.on("message", (rawMessage) => {
+                const message = JSON.parse(rawMessage.toLocaleString())
+                if (!grid) {
+                    grid = game.getGridById(playerId) as Demineur
                 }
-            console.log(message)
-        })
 
-        connection.on("close", () => {
-            game.leave(playerId)
-            publishPlayerLeave(game, game.getAllInfos(grid), connections, gameId, {id:playerId,nom:playerName,color:color})
-            games.clean(gameId)
-            connections.remove(playerId,gameId)
-        })
+                if (message.type != "ping") {
+                    pings = 0
+                }
+
+                switch (message.type) {
+                    case "ping":
+                        if (++pings == 10) {
+                            publishConnectionClosed(connection)
+                            connection.close()
+                        }
+                        break
+
+                    case "values":
+                        game.setValues(Number(message.long),Number(message.larg),Number(message.bombs))
+                        publishValues(game, game.getAllInfos(grid), connections, gameId)
+                        break
+
+                    case "create":
+                        game.addStart(playerId,Number(message.xstart),Number(message.ystart))
+                        if (game.isStart()) {
+                            game.createGrid()
+                            publishCreateVS(game,connections,gameId)
+                        }
+                        break
+
+                    case "flag":
+                        let isflag = grid.setFlag(Number(message.x),Number(message.y))
+                        publishFlagVS(connection, isflag, color, Number(message.x), Number(message.y))
+                        break
+
+                    case "clear":
+                    case "cleararound":
+                        let liste = message.type == "clear" ? grid.clearCase(Number(message.x),Number(message.y)) : grid.clearAroundCase(Number(message.x),Number(message.y))
+        
+                        publishClearVS(connection,liste)
+        
+                        if (game.isWin(playerId)) {
+                            publishMessage(game,connections,gameId,`${playerName} a gagné ! Il a nettoyé sa grille plus vite que tout le monde !`)
+                        } else if (game.isLose(playerId)) {
+                            let winner = game.getWinner()
+                            if (game.getCount() == 0) {
+                                publishMessage(game,connections,gameId,`${winner.nom} a gagné ! Sa grille a été la mieux nettoyée !`)
+                            } else if (game.getCount() == 1 && game.getPlaying(winner.id)) {
+                                publishMessage(game,connections,gameId,`${winner.nom} a gagné ! C'est le dernier en vie, et sa grille est mieux nettoyée !`)
+                            } else if (winner.id == playerId) {
+                                publishMessageVS(connection,`Vous avez fait exploser une bombe ! Vous êtes éliminé, mais vous pouvez toujours gagner si votre grille est mieux nettoyée.`)
+                            } else {
+                                publishMessageVS(connection,`Vous avez fait exploser une bombe ! Vous êtes éliminé, et vous ne pourrez pas gagner.`)
+                            }
+                        }
+                        break
+
+                    case "reload":
+                        game.reset()
+                        publishReload(game,connections,gameId)
+                        break
+
+                    case "start":
+                        if (game.getJoueurs().length > 1) {
+                            game.setBlank(true)
+                            publishBlank(game, game.getAllInfos(grid), connections, gameId)
+                        } else {
+                            publishMessageSingle("Vous ne pouvez pas lancer la partie seul.", connection)
+                        }
+                        break
+                    }
+                console.log(message)
+            })
+
+            connection.on("close", () => {
+                game.leave(playerId)
+                publishPlayerLeave(game, game.getAllInfos(grid), connections, gameId, {id:playerId,nom:playerName,color:color})
+                games.clean(gameId)
+                connections.remove(playerId,gameId)
+            })
+
+        }
+        
 
     })
 })
@@ -364,7 +379,7 @@ fastify.listen({port:8889, host:"localhost"}).catch((err) => { //
     fastify.log.error(err)
     process.exit(1)
 }).then( () => {
-    fastify.log.info("Port 8888 activé")
+    fastify.log.info("Port 8889 activé")
 })
 
 

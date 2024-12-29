@@ -4,26 +4,25 @@ import { cloneDeep } from "lodash"
 
 export class Versus extends Game {
     private grilles:{[key:string]:Demineur} = {}
-    private ready:{[key:string]:boolean} = {}
     private start:{[key:string]:[number,number]} = {}
     private playing:{[key:string]:boolean} = {}
     private count:number = 0
 
     reset(){
         super.reset()
-        this.ready = {}
         this.start = {}
         for (var joueur of this.joueurs) {
-            this.grilles[joueur.id].reset()
-            this.ready[joueur.id] = false
+            this.grilles[joueur.id]?.reset()
             this.start[joueur.id] = [-1, -1]
         }
     }
 
-    join(id:string,nom:string,color:string):void{
-        super.join(id, nom, color)
-        this.ready[id] = false
+    join(id:string,nom:string,color:string):boolean{
+        if (!super.join(id, nom, color)) {
+            return false
+        }
         this.start[id] = [-1,-1]
+        return true
     }
 
     addStart(id:string,xstart:number,ystart:number) {
@@ -40,20 +39,6 @@ export class Versus extends Game {
             }
         }
         return start
-    }
-
-    setReady(id:string){
-        this.ready[id] = !this.ready[id]
-    }
-
-    isReady():boolean{
-        var ready = true
-        for (var joueur of this.joueurs) {
-            if (!this.ready[joueur.id]) {
-                ready = false
-            }
-        }
-        return ready
     }
 
     isWin(playerId:string):boolean {
