@@ -3,6 +3,7 @@ import {Entry} from "../func/demineur";
 var socket:null|WebSocket = null
 var time:null|NodeJS.Timeout = null
 var lead:boolean = false
+var notif:number = 0
 
 // Création d'une websocket pour une partie classique
 function createSocket(gameid:string):void {
@@ -30,8 +31,10 @@ function createSocket(gameid:string):void {
             reload()
         } else if (data.type == "join") {
             setJoin(data)
+            announceJoin(data)
         } else if (data.type == "leave") {
             setLeave(data,false)
+            announceLeave(data)
         } else if (data.type == "allplayers") {
             setAllPlayers(data,session!.id)
         } else if (data.type == "waiting" || data.type == "values") {
@@ -39,7 +42,9 @@ function createSocket(gameid:string):void {
         } else if (data.type == "message") {
             setMessage(data)
         } else if (data.type == "closed") {
-            window.location.href = "/";
+            announceError("Après trop de temps inactif, votre session a été deconnectée.")
+        } else if (data.type == "err") {
+            announceError(data.mess)
         }
     })
     setInterval(function () {
@@ -71,8 +76,10 @@ function createSocketVersus(gameid:string):void {
             reload()
         } else if (data.type == "join") {
             setJoin(data)
+            announceJoin(data)
         } else if (data.type == "leave") {
             setLeave(data,true)
+            announceLeave(data)
         } else if (data.type == "allplayers") {
             setAllPlayers(data,session!.id)
         } else if (data.type == "waiting" || data.type == "values") {
@@ -98,8 +105,8 @@ function setWait(data:any,versus:boolean):void {
 
         $("#inputs").append(`
             <div class="sliders">
-                <div class="span-input">Lignes : <span id="sp-rows">${long}</span><br><input type="range" value="${long}" min="5" max="30" id="rows"></div>
-                <div class="span-input">Colonnes : <span id="sp-cols">${larg}</span><br><input type="range" value="${larg}" min="5" max="30" id="cols"></div>
+                <div class="span-input">Lignes : <span id="sp-rows">${long}</span><br><input type="range" value="${long}" min="5" max="40" id="rows"></div>
+                <div class="span-input">Colonnes : <span id="sp-cols">${larg}</span><br><input type="range" value="${larg}" min="5" max="40" id="cols"></div>
                 <div class="span-input">Bombes : <span id="sp-bombs">${bombs}</span><br><input type="range" value="${bombs}" min="5" max="${max}" id="bombs"></div>
             </div>
         `)
@@ -246,7 +253,22 @@ function setJoin(data:any):void {
     } else {
         $("#container-joueurs").append(`<div class="infos" id=${joueur.id}><img src='/static/flag${joueur.color}.svg' class='flag count'>${joueur.nom}</div>`)
     }
-    
+}
+
+function announceJoin(data:any) {
+    let joueur = data["joueur"]
+    if (joueur.id != localStorage.getItem("playerId")) {
+        $("#container-messages").append(`
+            <div class="joined">
+                <p><strong>${joueur.nom}</strong> a rejoint la partie !</p>
+                <img src="/static/cross.svg" alt="" class="closeNotif">
+            </div>
+        `)
+
+        $(".closeNotif").on("click", function() {
+            $(this).parent().remove()
+        })
+    }
 }
 
 function setLeave(data:any,versus:boolean):void {
@@ -257,6 +279,36 @@ function setLeave(data:any,versus:boolean):void {
     if (data["leader"] == localStorage.getItem("playerId") && !lead) {
         setWait(data,versus)
     }
+}
+
+
+function announceLeave(data:any) {
+    let joueur = data["joueur"]
+    if (joueur.id != localStorage.getItem("playerId")) {
+        $("#container-messages").append(`
+            <div class="left">
+                <p><strong>${joueur.nom}</strong> a quitté la partie.</p>
+                <img src="/static/cross.svg" alt="" class="closeNotif">
+            </div>
+        `)
+
+        $(".closeNotif").on("click", function() {
+            $(this).parent().remove()
+        })
+    }
+}
+
+function announceError(message:string) {
+    $("#container-messages").append(`
+        <div class="left">
+            <p>${message}</p>
+            <img src="/static/cross.svg" alt="" class="closeNotif">
+        </div>
+    `)
+
+    $(".closeNotif").on("click", function() {
+        $(this).parent().remove()
+    })
 }
 
 function setAllPlayers(data:any,id:string):void {

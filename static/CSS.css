@@ -285,14 +285,9 @@ input[type="range"] {
 }
 
 .container-infos .title-infos, .title-infos {
-    background-color: unset;
-    justify-content: center;
-    margin-right: 10px;
     font-size: 32px;
     font-weight: 600;
-    display: flex;
-    padding: 10px;
-    margin: 5px;
+    align-self: center;
 }
 
 .container-infos .trait, .trait {
@@ -555,3 +550,59 @@ tr:last-of-type {
     transition: all .5s;
     border: solid #EED 2px;
 }
+
+.title {
+    display: flex;
+    align-self: center;
+    gap:15px;
+
+    img {
+        width: 75px;
+    }
+}
+
+#container-messages {
+    width: 100%;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+
+    div {
+        padding: 18px;
+        margin: 20px;
+        background-color: #312D2D;
+        border-radius: 5px;
+        width: 250px;
+        display: grid;
+        word-break: break-word;
+        margin-bottom: 0;
+    }
+
+    p {
+        margin: 0;
+        font-size: 16px;
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    img {
+        grid-column: 1;
+        grid-row: 1;
+        height: 20px;
+        position: relative;
+        justify-self: end;
+        bottom: 15px;
+        left: 15px;
+        cursor: pointer;
+    }
+
+    .joined {
+        background-color: #3B6A34;
+    }
+    
+    .left {
+        background-color: #602424;
+    }
+}
+

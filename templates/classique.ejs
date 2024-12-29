@@ -29,16 +29,18 @@
     
             </div>
         </div>
+
+        <div id="container-messages">
+        </div>
+        
         <div class="flex-container">
     
-            <div class="container-infos" id="container-joueurs">
-                <a href="/"><img src="/static/home.svg" id="container-index" class="img-button" alt=""></a>
-                <div class="infos">Code : <%=gameid%></div>
-            </div>
-    
             <div class="container-inputs" id="container-inputs">
-                <div class="title-infos">Partie Coop</div>
-                <div class="trait"></div>
+                <div class="title">
+                    <img src="/static/flagBlanc.svg">
+                    <div class="title-infos">Partie Coop</div>
+                </div>
+                
                 <div id="inputs"></div>
             </div>
     
@@ -53,6 +55,11 @@
             <div class="game-board" id="container-board" style="display: none;">
                 <table id="board">
                 </table>
+            </div>
+
+            <div class="container-infos" id="container-joueurs">
+                <a href="/"><img src="/static/home.svg" id="container-index" class="img-button" alt=""></a>
+                <div class="infos">Code : <%=gameid%></div>
             </div>
             
         </div>

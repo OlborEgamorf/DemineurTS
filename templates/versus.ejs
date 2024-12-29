@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="/static/CSS.css">
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="/static/inpage.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 </head>
 
 <script>
@@ -19,12 +23,6 @@
 </script>
 
 <body>   
-    <div id="allover" class="overlay">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <div class="overlay-content">
-
-        </div>
-    </div>
     <div class="main-game">
         <div id="allover" class="overlay">
             <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
@@ -35,29 +33,29 @@
         <div class="flex-container">
     
             <div class="container-infos" id="container-joueurs">
-                <div class="title-infos">Joueurs</div>
-                <div class="trait"></div>
-    
+                <a href="/"><img src="/static/home.svg" id="container-index" class="img-button" alt=""></a>
+                <div class="infos">Code : <%=gameid%></div>
             </div>
     
+            <div class="container-inputs" id="container-inputs">
+                <div class="title">
+                    <img src="/static/bomb.svg">
+                    <div class="title-infos">Partie Versus</div>
+                </div>
+                <div id="inputs"></div>
+            </div>
+    
+            <div class="container-infos" id="container-count" style="display: none;">
+                <div class="infos" id="fl"><img src='/static/flagRouge.svg'><span id="counting">0</span></div>
+                <div class="infos"><img src='/static/bomb.svg'><span id="bo">0</span></div>
+                <div class="infos"><img src='/static/time.svg'><span id="timer">00 : 00</span></div>
+                <img src="/static/refresh.svg" onclick="callReload()" id="container-reload" class="img-button" alt="">
+                
+            </div>
+
             <div class="game-board" id="container-board" style="display: none;">
                 <table id="board">
                 </table>
-            </div>
-    
-            <div class="container-inputs" id="inputs">
-                <div class="title-infos">Paramètres</div>
-                <div class="trait"></div>
-            </div>
-    
-            <div class="container-infos" id="container-count">
-                <div class="title-infos">Partie</div>
-                <div class="trait"></div>
-                <div class="infos">Code : <%=gameid%></div>
-                <div class="infos" id="fl"></div>
-                <div class="infos" id="bo"></div>
-                <div class="infos" id="timer">00 : 00</div>
-                <input type="button" onclick="callReload()" value="Relancer" id="container-reload">
             </div>
             
         </div>
