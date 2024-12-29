@@ -1,5 +1,5 @@
 import { Demineur } from "./demineur"
-import { Game, Infos, Joueur } from "./game"
+import { Game } from "./game"
 
 export class Coop extends Game {
     private grid:Demineur|undefined
@@ -11,7 +11,12 @@ export class Coop extends Game {
 
     createGrid(xstart:number,ystart:number):void {
         if (!this.play) {
-            this.grid = new Demineur(this.long, this.larg, this.bombs)
+            if (!this.grid) {               
+                this.grid = new Demineur(this.long, this.larg, this.bombs)
+            } else {
+                this.grid.reconstruct(this.long, this.larg, this.bombs)
+            }
+            
             this.grid.createGrid([[xstart, ystart]])
             this.grid.defVisible(xstart, ystart, [])
 

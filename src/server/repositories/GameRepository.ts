@@ -20,6 +20,9 @@ export class GameRepository {
     }
 
     find(id:string):Coop|Versus|undefined {
+        if (id.length != 4) {
+            return undefined
+        }
         return this.games.get(id)
     }
 

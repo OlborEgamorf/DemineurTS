@@ -32,6 +32,7 @@ export class Demineur {
     reset():void{
         this.tab = []
         this.totalflags = 0
+        this.lose = false
     }
 
     getVisible():Number[][] {
@@ -171,6 +172,9 @@ export class Demineur {
     getNotVisible():number {
         return this.notvisible
     }
+    getCase(x:number,y:number):Case {
+        return this.tab[x][y]
+    }
 
     rebuild(tab:Case[][], long:number, larg:number, bombs:number):void {
         this.tab = tab
@@ -178,6 +182,12 @@ export class Demineur {
         this.larg = larg
         this.bombs = bombs
         this.notvisible = long * larg
-        this.lose = false
+    }
+
+    reconstruct(long:number, larg:number, bombs:number):void {
+        this.long = long
+        this.larg = larg
+        this.bombs = bombs
+        this.notvisible = long * larg
     }
 }

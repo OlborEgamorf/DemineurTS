@@ -2,6 +2,7 @@ import { WebSocket } from "@fastify/websocket";
 import { Game, Infos, Joueur } from "../func/game";
 import { ConnectionRepository } from "./repositories/ConnectionRepository";
 import { Entry } from "../func/demineur";
+import { FastifyInstance } from 'fastify'
 
 export function publishBlank(game:Game, infos:Infos, connections:ConnectionRepository, gameId:string) {
     for (const player of game.getJoueurs()) {
@@ -18,6 +19,12 @@ export function publishBlankSingle(infos:Infos,connection:WebSocket){
 
 export function publishConnectionClosed(connection:WebSocket){
     connection.send(JSON.stringify({type:"closed"}))
+}
+
+export function publishErrorSingle(message:string, log:string, connection:WebSocket, f:FastifyInstance){
+    connection.send(JSON.stringify({type:"err", mess:message}))
+    connection.close()
+    f.log.error(log)
 }
 
 export function publishValues(game:Game, infos:Infos, connections:ConnectionRepository,gameId:string) {
@@ -88,7 +95,6 @@ export function publishPlayerJoin(game:Game, connections:ConnectionRepository, g
 }
 
 export function publishPlayerLeave(game:Game, infos:Infos, connections:ConnectionRepository, gameId:string, joueur:Joueur) {
-    console.log(game.getJoueurs())
     for (const player of game.getJoueurs()) {
         const connection = connections.find(player.id,gameId)
         if (connection) {
