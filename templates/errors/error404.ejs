@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Démineur - Home</title>
+    <link rel="stylesheet" href="/static/CSS.css">
+    <script src="/static/inpage.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
+</head>
+
+<body>   
+    <div class="main-game">
+        <div class="flex-container">
+
+            <div class="container-infos" id="container-joueurs">
+                <a href="/"><img src="/static/home.svg" id="container-index" class="img-button" alt=""></a>
+                <div class="infos red">Hmmm...</div>
+            </div>
+
+            <div class="game-board" id="container-board" style="display: flex;">
+                <table id="board">
+                    <tr>
+                        <td id="0_0" data-row="0" data-col="0"></td>
+                        <td id="0_1" data-row="0" data-col="1"></td>
+                        <td id="0_2" data-row="0" data-col="2"></td>
+                        <td id="0_3" data-row="0" data-col="3"></td>
+                        <td id="0_4" data-row="0" data-col="4"></td>
+                    </tr>
+                    <tr>
+                        <td id="1_0" data-row="1" data-col="0"></td>
+                        <td id="1_1" data-row="1" data-col="1"></td>
+                        <td id="1_2" data-row="1" data-col="2"></td>
+                        <td id="1_3" data-row="1" data-col="3"></td>
+                        <td id="1_4" data-row="1" data-col="4"></td>
+                    </tr>
+                    <tr>
+                        <td id="2_0" data-row="2" data-col="0"></td>
+                        <td class="revealed c4" id="2_1" data-row="2" data-col="1">4</td>
+                        <td class="revealed" id="2_2" data-row="2" data-col="2">0</td>
+                        <td class="revealed c4" id="2_3" data-row="2" data-col="3">4</td>
+                        <td id="2_4" data-row="2" data-col="4"></td>
+                    </tr>
+                    <tr>
+                        <td id="3_0" data-row="3" data-col="0"></td>
+                        <td id="3_1" data-row="3" data-col="1"></td>
+                        <td id="3_2" data-row="3" data-col="2"></td>
+                        <td id="3_3" data-row="3" data-col="3"></td>
+                        <td id="3_4" data-row="3" data-col="4"></td>
+                    </tr>
+                    <tr>
+                        <td id="4_0" data-row="4" data-col="0"></td>
+                        <td id="4_1" data-row="4" data-col="1"></td>
+                        <td id="4_2" data-row="4" data-col="2"></td>
+                        <td id="4_3" data-row="4" data-col="3"></td>
+                        <td id="4_4" data-row="4" data-col="4"></td>
+                    </tr>
+                </table>
+            </div>
+
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

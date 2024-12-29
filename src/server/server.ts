@@ -271,12 +271,12 @@ fastify.get<requestGeneric>("/play/:gameid", (req, reply) => {
         let game = games.find(gameid)
         if (game) {
             if (game.getJoueurs().length >= 8) {             // Maximum 8 joueurs
-                reply.view("/templates/error.ejs",{gameid:gameid, mess:"Maximum de joueurs atteint"})
+                reply.view("/templates/errors/error.ejs",{mess:"Maximum de joueurs atteint !"})
             } else {
                 reply.view("/templates/classique.ejs",{gameid:gameid})
             }
         } else {
-            reply.view("/templates/error.ejs",{gameid:gameid, mess:"Cette partie n'existe pas"})
+            reply.view("/templates/errors/error.ejs",{mess:"Cette partie n'existe pas..."})
         }
 
     } else {                                            // Sinon, on crée la partie
@@ -304,12 +304,12 @@ fastify.get<requestGeneric>("/versus/:gameid", (req, reply) => {
         let game = games.find(gameid)
         if (game) {
             if (game.getJoueurs().length >= 8) {             // Maximum 8 joueurs
-                reply.view("/templates/error.ejs",{gameid:gameid, mess:"Maximum de joueurs atteint"})
+                reply.view("/templates/errors/error.ejs",{mess:"Maximum de joueurs atteint !"})
             } else {
                 reply.view("/templates/versus.ejs",{gameid:gameid})
             }
         } else {
-            reply.view("/templates/error.ejs",{gameid:gameid, mess:"Cette partie n'existe pas"})
+            reply.view("/templates/errors/error.ejs",{mess:"Cette partie n'existe pas..."})
         }
 
     } else {                                            // Sinon, on crée la partie
@@ -366,3 +366,13 @@ fastify.listen({port:8889, host:"localhost"}).catch((err) => { //
 }).then( () => {
     fastify.log.info("Port 8888 activé")
 })
+
+
+fastify.setNotFoundHandler({}, function (request, reply) {
+    reply.view("/templates/errors/error404.ejs",{mess:"404"})
+})
+
+fastify.setErrorHandler(function (error, request, reply) {
+    this.log.error(error)
+    reply.view("/templates/errors/errorFatal.ejs",{mess:"Une erreur serveur s'est produite."})
+  })
