@@ -8,7 +8,8 @@
     "start": "tsx src/server/server.ts",
     "start:watch": "nodemon src/server/server.ts",
     "build": "tsc -p tsconfig.json",
-    "gen:key": "tsx src/commands/genkey.ts"
+    "gen:key": "tsx src/commands/genkey.ts",
+    "compile":"tsc --project tsconfig.json --watch"
   },
   "keywords": [],
   "author": "",
