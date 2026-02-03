@@ -30,7 +30,7 @@
     "@fastify/websocket": "^10.0.1",
     "ejs": "^3.1.8",
     "esbuild": "^0.25.0",
-    "fastify": "^4.29.0",
+    "fastify": "^5.7.3",
     "install": "^0.13.0",
     "lodash": "^4.17.21",
     "nodemon": "^3.1.0",
