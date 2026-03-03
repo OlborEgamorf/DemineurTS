@@ -20,11 +20,9 @@ import { IQuerystring, requestGeneric, requestStatic } from '../types'
 const connections = new ConnectionRepository()
 const games = new GameRepository(connections)
 
+const loggerInstance = require('pino')();
 const fastify = Fastify({
-    logger: {
-        level: 'error',
-        file: 'logs.txt' // Will use pino.destination()
-    }
+    loggerInstance
 })
 
 fastify.register(FastifyStatic,{root:resolve("./static")})
@@ -303,7 +301,16 @@ fastify.get<requestGeneric>("/play/:gameid", (req, reply) => {
     }
 })
 
-fastify.get<requestGeneric>("/play", {schema: {querystring: { gameid: { type: 'string' } } } }, (req,reply) => {
+fastify.get<requestGeneric>("/play", {
+    schema: {
+        querystring: {
+            type: 'object',
+            properties:{
+                gameid: { type: 'string' } 
+            }
+        }
+    }
+}, (req,reply) => {
     if (req.query.gameid) {
         reply.redirect(`/play/${req.query.gameid}`)
     } else {
@@ -336,7 +343,16 @@ fastify.get<requestGeneric>("/versus/:gameid", (req, reply) => {
     }
 })
 
-fastify.get<requestGeneric>("/versus", {schema: {querystring: { gameid: { type: 'string' } } } }, (req,reply) => {
+fastify.get<requestGeneric>("/versus", {
+    schema: {
+        querystring: {
+            type: 'object',
+            properties:{
+                gameid: { type: 'string' } 
+            }
+        }
+    }
+}, (req,reply) => {
     if (req.query.gameid) {
         reply.redirect(`/versus/${req.query.gameid}`)
     } else {
@@ -344,7 +360,16 @@ fastify.get<requestGeneric>("/versus", {schema: {querystring: { gameid: { type: 
     }
 })
 
-fastify.get<requestGeneric>("/search", {schema: {querystring: { gameid: { type: 'string' } } } }, (req,reply) => {
+fastify.get<requestGeneric>("/search", {
+    schema: {
+        querystring: {
+            type: 'object',
+            properties:{
+                gameid: { type: 'string' } 
+            }
+        }
+    }
+}, (req,reply) => {
     if (req.query.gameid) {
         let gameid = req.query.gameid.toUpperCase()     // On récupère l'ID de la partie
         let game = games.find(gameid)
@@ -363,7 +388,7 @@ fastify.get<requestGeneric>("/search", {schema: {querystring: { gameid: { type: 
 })
 
 
-fastify.post<{Querystring: IQuerystring}>("/api/players",(req,reply) => {
+fastify.post<{Querystring: IQuerystring}>("/api/players",(req, reply) => {
     const playerID = v4()
     const signature = sign(playerID)
     reply.send({
