@@ -39,7 +39,7 @@ body {
     background-color: #4a4a4a;
     text-align: center;
     border: none;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
     border-radius: 0;
     height: 37px;
@@ -119,8 +119,8 @@ td {
 }
 
 .flag {
-    height: 22px;
-    width: 22px;
+    height: 30px;
+    width: 30px;
 }
 
 td:hover {
