@@ -131,6 +131,14 @@ td:hover {
     background-color: #555555;
 }
 
+td:has(.flag) {
+    background-color: #222;
+    border-top-color: #333;
+    border-right-color: #3e3e3e;
+    border-bottom-color: #3e3e3e;
+    border-left-color: #333;
+}
+
 input[type=button] {
     border-radius: 10px;
     width: 120px;
